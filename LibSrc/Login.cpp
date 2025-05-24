@@ -9,10 +9,10 @@ Login::Login(std::string acc, std::string pwd, bool keepLogin)
 std::string Login::validateLogin()
 {
     MysqlConnGuard mysql_db;
-    std::string query = "select pwd from user where acc = '" + _acc + "'";
+    std::string query = "select pwd from test where acc = '" + _acc + "'";
     MYSQL_RES *res;
     if (mysql_db.isValid()) {
-        auto res = (*mysql_db)->Query(query);
+        res = (*mysql_db)->Query(query);
     } else {
         return "Error in query";
     }

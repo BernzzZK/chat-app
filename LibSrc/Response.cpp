@@ -1,6 +1,13 @@
 #include "Response.h"
 #include "Common.h"
 
+Response::Response()
+    : _time(muduo::Timestamp::now().toFormattedString())
+   , _success(false)
+   , _failReson("")
+{
+}
+
 Response::Response(bool success, std::string failReaon = "")
     : _time(muduo::Timestamp::now().toString())
     , _success(success)
@@ -25,4 +32,9 @@ void Response::toResponse(std::string resp) {
     _success = std::stoi(res[0]);
     _time = res[1];
     _failReson = res[2];
+}
+
+void Response::set(bool success, std::string failReson) {
+    _success = success;
+    _failReson = failReson;
 }

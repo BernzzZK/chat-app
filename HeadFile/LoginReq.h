@@ -10,7 +10,7 @@ private:
     Request _reqHead;
 
 public:
-    Response& handler() const;
+    Response handler() const;
     std::string toString();
     void toLoginReq(std::string);
 

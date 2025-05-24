@@ -1,6 +1,7 @@
 #include "LoginReq.h"
 #include "Login.h"
 #include "Common.h"
+#include <iostream>
 
 LoginReq::LoginReq(std::string req)
     : _acc("")
@@ -12,14 +13,16 @@ LoginReq::LoginReq(std::string req)
     toLoginReq(res[2]);
 }
 
-Response& LoginReq::handler() const {
+Response LoginReq::handler() const {
     Login login(_acc, _pwd, _keepLogin);
     std::string res = login.validateLogin();
+    Response resp;
     if (res == "") {
-        Response resp(true, res);
+       resp.set(true, "login success");
     } else {
-        Response resp(false, res);
+       resp.set(false, res);
     }
+    return resp;
 }
 
 std::string LoginReq::toString() {

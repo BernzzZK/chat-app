@@ -3,6 +3,7 @@
 #include "RegisterReq.h"
 #include "Common.h"
 #include "Response.h"
+#include "MysqlConnPool.h"
 using namespace std::placeholders;
 
 Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr) 
@@ -10,24 +11,35 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr)
 {
     server_.setConnectionCallback(bind(&Server::onConnection, this, _1));
     server_.setMessageCallback(bind(&Server::onMessage, this, _1, _2, _3));
+    server_.setThreadNum(4);
+    MysqlConnPool::instance().init("43.142.101.247", "root", "20040508", "chat");
 }
 
 void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
-    reqType type = (reqType)std::stoi(common::parsing(msg));
-    if(type == registered) {
-
-    }
-    else if(type == login) {
-        LoginReq loginReq(msg);
-        Response resp = loginReq.handler();
-        conn->send(resp.toString());
-    }
-    else if(type == logout) {
-
-    }
-    else if(type == sendMsg) {
-
+    try{
+        reqType type = (reqType)std::stoi(common::parsing(msg));
+        LOG_INFO << "Received message from " << conn->name() << ": " << msg;
+        if (type == registered)
+        {
+            conn->send("registered unrealized");
+        }
+        else if (type == login)
+        {
+            LoginReq loginReq(msg);
+            Response resp = loginReq.handler();
+            conn->send(resp.toString());
+        }
+        else if (type == logout)
+        {
+            conn->send("logout unrealized");
+        }
+        else if (type == sendMsg)
+        {
+            conn->send("sendMsg unrealized");
+        }
+    } catch(const std::invalid_argument& e) {
+       LOG_ERROR << "Invalid argument: " << e.what(); 
     }
 }
 
