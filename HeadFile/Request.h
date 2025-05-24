@@ -1,0 +1,48 @@
+#pragma once
+#include <map>
+#include <string>
+#include <muduo/base/Timestamp.h>
+#include <Response.h>
+#include "nocopyable.h"
+
+enum reqType
+{
+    nullTyp,
+    connect,
+    disconnect,
+    registered,
+    login,
+    logout,
+    sendMsg
+};
+
+struct reqHead {
+
+    reqType type;
+    std::string time;
+
+    std::string toString();
+    void toReqHead(std::string);
+    reqHead()
+    : type(nullTyp) 
+    , time(muduo::Timestamp::now().toString())
+    {};
+    reqHead(std::string str) {
+        toReqHead(str);
+    }
+};
+
+class Request : public chat::nocopyable {
+public:
+    Request() { }
+
+    Request(std::string str)
+    : _head(str)
+    { }
+
+    std::string toString();
+
+    virtual ~Request();
+protected:
+    reqHead _head;
+};
