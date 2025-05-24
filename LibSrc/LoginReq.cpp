@@ -8,8 +8,7 @@ LoginReq::LoginReq(std::string req)
     , _keepLogin(false)
 {
     std::vector<std::string> res = common::splitString(req);
-    _head.type = (reqType)std::stoi(res[0]);
-    _head.time = res[1];
+    _reqHead.set(res[0], res[1]);
     toLoginReq(res[2]);
 }
 
@@ -28,7 +27,7 @@ std::string LoginReq::toString() {
     ret.append("#" + _acc);
     ret.append("#" + _pwd);
     ret.append("#" + std::to_string(_keepLogin));
-    return _head.toString() + "@" + ret; // to split req in two part -- head & info
+    return _reqHead.toString() + "@" + ret; // to split req in two part -- head & info
 }
  
 void LoginReq::toLoginReq(std::string info) {

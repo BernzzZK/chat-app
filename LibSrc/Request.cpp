@@ -19,7 +19,15 @@ void reqHead::toReqHead(std::string str)
     }
 }
 
-std::string Request::toString()
-{
+std::string Request::toString() {
     return _head.toString();
+}
+
+Request::Request(std::string type, std::string time) {
+    set(time, time);
+}
+
+void Request::set(std::string type, std::string time) {
+    _head.type = (reqType)std::stoi(type);
+    _head.time = time;
 }

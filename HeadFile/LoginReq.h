@@ -1,13 +1,13 @@
 #pragma once
 #include "Request.h"
 
-class LoginReq : public Request
-{
+class LoginReq {
 private:
 
     std::string _acc;
     std::string _pwd;
     bool _keepLogin;
+    Request _reqHead;
 
 public:
     Response& handler() const;

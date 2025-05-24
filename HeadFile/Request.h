@@ -8,8 +8,6 @@
 enum reqType
 {
     nullTyp,
-    connect,
-    disconnect,
     registered,
     login,
     logout,
@@ -40,9 +38,12 @@ public:
     : _head(str)
     { }
 
+    Request(std::string type, std::string time);
+
     std::string toString();
 
-    virtual ~Request();
-protected:
+    void set(const std::string type, const std::string time);
+
+private:
     reqHead _head;
 };
