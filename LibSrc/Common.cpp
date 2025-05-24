@@ -28,7 +28,7 @@ std::vector<std::string> common::splitString(const std::string &input)
     return elements;
 }
 
-reqType common::parsing(std::string msg) {
+std::string common::parsing(std::string msg) {
     auto res = common::splitString(msg);
-    return (reqType)std::stoi(res[0]);
+    return res[0];
 }

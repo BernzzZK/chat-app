@@ -1,20 +1,20 @@
-# 服务器子项目
-project(ChatServer)
-
 # 显式指定源文件
 aux_source_directory(./ SRC)
+aux_source_directory(../LibSrc LIBSRC)
 
 # 创建可执行文件
-add_executable(${PROJECT_NAME} ${SRC})
+add_executable(${PROJECT_NAME} ${SRC} ${LIBSRC})
 
 # 头文件包含
-target_include_directories(${PROJECT_NAME} PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}
+include_directories(
+    ${CMAKE_CURRENT_SOURCE_DIR}/HeadFile
+    ../HeadFile
 )
 
-# 链接库
 target_link_libraries(${PROJECT_NAME} PRIVATE
     muduo_net
     muduo_base
     pthread
+    mysqlclient  # 添加MySQL客户端库
+    hiredis       # 添加Redis客户端库
 )

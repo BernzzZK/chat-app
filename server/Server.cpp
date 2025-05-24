@@ -1,5 +1,6 @@
 #include "Server.h"
 #include "LoginReq.h"
+#include "RegisterReq.h"
 #include "Common.h"
 #include "Response.h"
 using namespace std::placeholders;
@@ -13,7 +14,7 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr)
 
 void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
-    reqType type = common::parsing(msg);
+    reqType type = (reqType)std::stoi(common::parsing(msg));
     if(type == registered) {
 
     }
