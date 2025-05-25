@@ -1,3 +1,4 @@
+project(ChatServer)
 # 显式指定源文件
 aux_source_directory(./ SRC)
 aux_source_directory(../LibSrc LIBSRC)
@@ -15,6 +16,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     muduo_net
     muduo_base
     pthread
-    mysqlclient  # 添加MySQL客户端库
-    hiredis       # 添加Redis客户端库
+    mysqlclient
+    hiredis
 )

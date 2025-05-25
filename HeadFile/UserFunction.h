@@ -4,9 +4,16 @@
 
 #ifndef USERFUNCTION_H
 #define USERFUNCTION_H
+#include <string>
 
-class UserFunction {
+namespace UserFunction {
+    std::string login();
+    std::string registerUser();
+    std::string sendMsg();
+    std::string addFriend();
+    std::string logout();
+
+
 
 };
-
 #endif //USERFUNCTION_H

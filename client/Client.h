@@ -3,6 +3,10 @@
 #include <muduo/base/Mutex.h>
 #include <atomic>
 #include <mutex>
+#include <condition_variable>
+
+#include "Response.h"
+
 
 class ChatClient
 {
@@ -28,4 +32,10 @@ private:
     std::atomic<bool> connected_{false};
     muduo::MutexLock mutex_;
     muduo::net::TcpConnectionPtr conn_;
+
+    muduo::MutexLock resp_mutex_;
+    std::condition_variable resp_cv_;
+    Response resp_;
+
+    std::atomic<bool> isLogin_{false};
 };
