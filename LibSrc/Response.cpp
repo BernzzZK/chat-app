@@ -1,40 +1,62 @@
 #include "Response.h"
+
+#include <algorithm>
+#include <any>
+#include <muduo/base/Logging.h>
+
 #include "Common.h"
 
 Response::Response()
-    : _time(muduo::Timestamp::now().toFormattedString())
-   , _success(false)
-   , _failReson("")
+    : _success(false)
+    , _time(muduo::Timestamp::now().toFormattedString())
+    , _failReason("")
 {
 }
 
-Response::Response(bool success, std::string failReaon = "")
-    : _time(muduo::Timestamp::now().toString())
-    , _success(success)
-    , _failReson(failReaon)
+Response::Response(const bool success, const std::string &failReason = "")
+    : _success(success)
+    , _time(muduo::Timestamp::now().toString())
+    , _failReason(failReason)
 {
 }
 
-Response::Response(std::string resp) {
+Response::Response(std::string &resp)
+    : _success(false)
+    , _time(muduo::Timestamp::now().toFormattedString())
+    , _failReason("")
+{
     toResponse(resp);
 }
 
-std::string Response::toString() {
+std::string Response::toString() const {
     std::string ret;
     ret.append("@" + std::to_string(_success));
     ret.append("@" + _time);
-    ret.append("@" + _failReson);
+    ret.append("@" + _failReason);
     return ret;
 }
 
-void Response::toResponse(std::string resp) {
-    auto res = common::splitString(resp);
+void Response::toResponse(std::string &resp) {
+    if (resp.empty()) {
+        LOG_ERROR << "Invalid response format";
+        return;
+    }
+    LOG_INFO << "resp: " << resp;
+    const auto res = common::splitString(resp);
     _success = std::stoi(res[0]);
     _time = res[1];
-    _failReson = res[2];
+    _failReason = res[2];
 }
 
-void Response::set(bool success, std::string failReson) {
+void Response::set(const bool success, const std::string &failReason) {
     _success = success;
-    _failReson = failReson;
+    _failReason = failReason;
+}
+
+bool Response::isSuccess() const {
+    return _success;
+}
+
+std::string Response::getReason() const {
+    return _failReason;
 }

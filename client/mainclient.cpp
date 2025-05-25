@@ -9,16 +9,17 @@ using namespace muduo::net;
 // 用户输入处理线程
 void inputThread(ChatClient &client)
 {
-    std::string msg;
-    while (std::getline(std::cin, msg))
-    {
-        if (msg == "/quit")
-        {
-            client.disconnect();
-            break;
-        }
-        client.send(msg);
-    }
+    // std::string msg;
+    // while (std::getline(std::cin, msg))
+    // {
+    //     if (msg == "/quit")
+    //     {
+    //         client.disconnect();
+    //         break;
+    //     }
+    //     client.send(msg);
+    // }
+    client.start();
 }
 
 int main()

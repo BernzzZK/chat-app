@@ -4,15 +4,18 @@
 class Response {
 public:
     Response();
-    Response(bool success, std::string failReson);
-    Response(std::string);
+    Response(bool success, const std::string &failReason);
 
-    std::string toString();
-    void toResponse(std::string);
-    void set(bool success, std::string failReson);
+    Response(std::string & resp);
+
+    std::string toString() const;
+    void toResponse(std::string &);
+    void set(bool success, const std::string &failReason);
+    bool isSuccess() const;
+    std::string getReason() const;
 
 private:
     bool _success;
     std::string _time;
-    std::string _failReson;
+    std::string _failReason;
 };

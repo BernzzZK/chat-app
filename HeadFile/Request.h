@@ -38,11 +38,11 @@ public:
     : _head(str)
     { }
 
-    Request(std::string type, std::string time);
+    Request(const reqType type, std::string time);
 
     std::string toString();
 
-    void set(const std::string type, const std::string time);
+    void set(const reqType type, const std::string time);
 
 private:
     reqHead _head;

@@ -23,11 +23,11 @@ std::string Request::toString() {
     return _head.toString();
 }
 
-Request::Request(std::string type, std::string time) {
-    set(time, time);
+Request::Request(const reqType type, std::string time) {
+    set(type, time);
 }
 
-void Request::set(std::string type, std::string time) {
-    _head.type = (reqType)std::stoi(type);
+void Request::set(const reqType type, std::string time) {
+    _head.type = type;
     _head.time = time;
 }

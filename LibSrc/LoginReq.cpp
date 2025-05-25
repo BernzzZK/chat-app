@@ -2,14 +2,28 @@
 #include "Login.h"
 #include "Common.h"
 #include <iostream>
+#include <muduo/base/Logging.h>
+
+LoginReq::LoginReq(std::string req, int type)
+    : _acc("")
+    , _pwd("")
+    , _keepLogin(false)
+{
+    _reqHead.set(login, muduo::Timestamp::now().toFormattedString());
+    toLoginReq(req);
+}
 
 LoginReq::LoginReq(std::string req)
     : _acc("")
     , _pwd("")
     , _keepLogin(false)
 {
-    std::vector<std::string> res = common::splitString(req);
-    _reqHead.set(res[0], res[1]);
+    auto res = common::splitString(req);
+    if (res.size() != 3) {
+        LOG_ERROR << "Invalid request format";
+        return;
+    }
+    _reqHead.set(static_cast<reqType>(std::stoi(res[0])), res[1]);
     toLoginReq(res[2]);
 }
 

@@ -19,7 +19,6 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
     std::string msg(buff->retrieveAllAsString());
     try{
         reqType type = (reqType)std::stoi(common::parsing(msg));
-        LOG_INFO << "Received message from " << conn->name() << ": " << msg;
         if (type == registered)
         {
             conn->send("registered unrealized");
@@ -27,7 +26,8 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         else if (type == login)
         {
             LoginReq loginReq(msg);
-            Response resp = loginReq.handler();
+            const Response resp = loginReq.handler();
+            LOG_INFO << "response: " << resp.toString();
             conn->send(resp.toString());
         }
         else if (type == logout)

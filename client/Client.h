@@ -2,7 +2,7 @@
 #include <muduo/net/EventLoop.h>
 #include <muduo/base/Mutex.h>
 #include <atomic>
-#include "Request.h"
+#include <mutex>
 
 class ChatClient
 {
@@ -13,6 +13,8 @@ public:
     void connect();
     void disconnect();
     void send(const std::string &message);
+
+    void start();
 
 private:
     void onConnection(const muduo::net::TcpConnectionPtr &conn);

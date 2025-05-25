@@ -15,5 +15,7 @@ public:
     void toLoginReq(std::string);
 
     LoginReq(std::string);
+    LoginReq(std::string, int type);
+
     ~LoginReq() {};
 };

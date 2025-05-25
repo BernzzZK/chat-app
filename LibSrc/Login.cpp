@@ -25,4 +25,5 @@ std::string Login::validateLogin()
         else
             return "";
     }
+    return "error res";
 }
