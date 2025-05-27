@@ -13,7 +13,7 @@ LoginReq::LoginReq(std::string req, int type)
     toLoginReq(req);
 }
 
-LoginReq::LoginReq(std::string req)
+LoginReq::LoginReq(const std::string& req)
     : _acc("")
     , _pwd("")
     , _keepLogin(false)

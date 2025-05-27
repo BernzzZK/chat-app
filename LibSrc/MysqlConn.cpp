@@ -27,16 +27,11 @@ MysqlConn::~MysqlConn()
 
 MYSQL_RES *MysqlConn::Query(const std::string &query)
 {
-    if (mysql_query(conn_, query.c_str()))
-    {
+    if (mysql_query(conn_, query.c_str())) {
         LOG_ERROR << "MySQL query error!";
         return nullptr;
     }
     MYSQL_RES *res = mysql_store_result(conn_);
-    if (res == nullptr)
-    {
-        LOG_ERROR << "MySQL store result error!";
-    }
     return res;
 }
 

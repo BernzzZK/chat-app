@@ -10,7 +10,7 @@ class Register {
 private:
     std::string &_acc;
     std::string &_pwd;
-
+    std::string _created_time;
 public:
     Register(std::string acc, std::string pwd);
 

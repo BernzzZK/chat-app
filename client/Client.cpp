@@ -135,6 +135,7 @@ void ChatClient::start() {
                 }
                 case 3:
                     disconnect();
+                    sleep(1);
                     exit(0);
                 default:
                     std::cout << "无效选项!\n";
@@ -142,11 +143,13 @@ void ChatClient::start() {
         } else {
             switch (choice) {
                 case 1: {
-                    send(UserFunction::sendMsg());
+                    send(UserFunction::sendmsg());
                     break;
                 }
                 case 2: {
-                    send(UserFunction::addFriend());
+                    std::unique_lock<std::mutex> lck(acc_mutex_);
+                    send(UserFunction::addfriend(acc_));
+                    lck.unlock();
                     break;
                 }
                 case 3: {

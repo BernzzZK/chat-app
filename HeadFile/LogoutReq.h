@@ -11,8 +11,7 @@ private:
     Request _reqHead;
     std::string _acc;
 public:
-    LogoutReq(std::string acc, std::string pwd);
-    LogoutReq(std::string);
+    LogoutReq(const std::string& acc);
     LogoutReq(std::string, int type);
 
     void toLogoutReq(std::string &info);

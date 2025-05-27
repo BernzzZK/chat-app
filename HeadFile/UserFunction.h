@@ -9,11 +9,8 @@
 namespace UserFunction {
     std::string login(std::string *acc);
     std::string registerUser();
-    std::string sendMsg();
-    std::string addFriend();
+    std::string sendmsg();
+    std::string addfriend(std::string &acc);
     std::string logout(std::string &acc);
-
-
-
 };
 #endif //USERFUNCTION_H

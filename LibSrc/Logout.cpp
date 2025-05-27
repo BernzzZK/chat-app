@@ -4,7 +4,7 @@
 
 #include "Logout.h"
 
-Logout::Logout(std::string acc)
+Logout::Logout(const std::string &acc)
     : _acc(acc)
 {
 }

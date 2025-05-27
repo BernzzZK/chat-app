@@ -5,15 +5,18 @@
 #include "UserFunction.h"
 #include "LoginReq.h"
 #include <iostream>
-#include <limits>
-
 #include "LogoutReq.h"
 #include "RegisterReq.h"
+#include "AddFriendReq.h"
 
 std::string UserFunction::login(std::string *acc) {
     std::string username, password;
-    std::cout << "用户名: ";
+    std::cout << "账号名: ";
     std::getline(std::cin, username);
+    while (username.size() > 16 || username.size() < 4) {
+        std::cout << "账号名长度必须在4到16之间，请重新输入: ";
+        std::getline(std::cin, username);
+    }
     std::cout << "密码: ";
     std::getline(std::cin, password);
     std::cout << "是否保持登录状态? (y/n): ";
@@ -34,11 +37,11 @@ std::string UserFunction::login(std::string *acc) {
 
 std::string UserFunction::registerUser() {
     std::string username, password;
-    // 输入用户名
-    std::cout << "用户名: ";
+    // 输入账号名
+    std::cout << "账号名: ";
     std::getline(std::cin, username);
     while (username.size() > 16 || username.size() < 4) {
-        std::cout << "用户名长度必须在4到16之间，请重新输入: ";
+        std::cout << "账号名长度必须在4到16之间，请重新输入: ";
         std::getline(std::cin, username);
     }
     // 输入密码
@@ -49,20 +52,27 @@ std::string UserFunction::registerUser() {
         std::getline(std::cin, password);
     }
 
-    // 确保密码没有换行符
-    if (!password.empty() && password.back() == '\n') {
-        password.pop_back();
-    }
     RegisterReq registerReq(username, password);
     std::string req = registerReq.toString();
     return req;
 }
 
-std::string UserFunction::sendMsg() {
+std::string UserFunction::sendmsg() {
     return "";
 }
 
-std::string UserFunction::addFriend() {
+std::string UserFunction::addfriend(std::string &acc) {
+    const std::string curr_username = acc;
+    std::string username;
+    // 输入账号名
+    std::cout << "账号名: ";
+    std::getline(std::cin, username);
+    while (username.size() > 16 || username.size() < 4) {
+        std::cout << "账号名长度必须在4到16之间，请重新输入: ";
+        std::getline(std::cin, username);
+    }
+    AddFriendReq addFriendReq(username, curr_username);
+    std::string req = addFriendReq.toString();
     return "";
 }
 

@@ -11,7 +11,7 @@ class Logout {
 private:
     std::string _acc;
 public:
-    Logout(std::string acc);
+    Logout(const std::string &acc);
     std::string logout() const;
 };
 

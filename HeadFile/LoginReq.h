@@ -15,7 +15,7 @@ public:
     void toLoginReq(std::string);
     std::string getAccount() const { return _acc;}
 
-    LoginReq(std::string);
+    LoginReq(const std::string &);
     LoginReq(std::string, int type);
 
     ~LoginReq() {};

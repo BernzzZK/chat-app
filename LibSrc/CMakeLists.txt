@@ -26,11 +26,11 @@ set(LIB_SOURCES
         Response.cpp
         UserFunction.cpp
         Register.cpp
-        ../HeadFile/Register.h
-        ../HeadFile/LogoutReq.h
         LogoutReq.cpp
         Logout.cpp
-        ../HeadFile/Logout.h
+        UniqueHashGenerator.cpp
+        AddFriendReq.cpp
+        AddFriend.cpp
 )
 
 # 创建共享库

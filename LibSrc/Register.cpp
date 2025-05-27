@@ -6,10 +6,12 @@
 #include <muduo/base/Logging.h>
 #include "MysqlConnGuard.h"
 #include <algorithm>
+#include "UniqueHashGenerator.h"
 
 Register::Register(std::string acc, std::string pwd)
     : _acc(acc)
     , _pwd(pwd)
+    , _created_time(muduo::Timestamp::now().toFormattedString())
 {
 }
 
@@ -25,11 +27,14 @@ std::string Register::validateRegister() const {
     removeNewlines(_pwd);
 
     // 2. 检查账号是否已存在
-    const std::string query = "SELECT * FROM test WHERE acc = '" + _acc + "'";
+    const std::string query = "SELECT account FROM User WHERE account = '" + _acc + "'";
     MYSQL_RES *res = (*mysql_db)->Query(query);
     if (!res) {
         return "Error in query";
     }
+
+    UniqueHashGenerator hashGenerator;
+    const std::string id = hashGenerator(_acc);
 
     MYSQL_ROW row = mysql_fetch_row(res);
     if (row != nullptr) {
@@ -37,11 +42,10 @@ std::string Register::validateRegister() const {
     }
 
     const std::string insert =
-        "INSERT INTO test(acc, pwd) VALUES('" + _acc + "', '" + _pwd + "')";
-
+        "INSERT INTO User(ID, username, account, password, role, created_time) "
+        "VALUES( " + id +", '默认名称', '" + _acc + "', '" + _pwd + "', 'user', '" + _created_time + "')";
     if ((*mysql_db)->Query(insert)) {
         return "Error in insert";
     }
-
     return ""; // 成功
 }

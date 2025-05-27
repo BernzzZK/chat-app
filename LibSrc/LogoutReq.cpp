@@ -12,7 +12,7 @@ LogoutReq::LogoutReq(std::string acc, int type)
 {
 }
 
-LogoutReq::LogoutReq(std::string req) {
+LogoutReq::LogoutReq(const std::string& req) {
     auto res = common::splitString(req);
     if (res.size() != 3) {
         LOG_ERROR << "Invalid request format";
