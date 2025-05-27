@@ -5,11 +5,17 @@
 #include <muduo/base/Logging.h>
 #include "Common.h"
 #include "Logout.h"
+#include <algorithm>
 
 LogoutReq::LogoutReq(std::string acc, int type)
     : _reqHead(logout, muduo::Timestamp::now().toFormattedString())
     , _acc(acc)
 {
+    auto removeNewlines = [](std::string &str) {
+        str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+        str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    };
+    removeNewlines(_acc);
 }
 
 LogoutReq::LogoutReq(const std::string& req) {
@@ -25,6 +31,11 @@ LogoutReq::LogoutReq(const std::string& req) {
 void LogoutReq::toLogoutReq(std::string &info) {
     auto res = common::splitString(info);
     this->_acc = res[0];
+    auto removeNewlines = [](std::string &str) {
+        str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+        str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    };
+    removeNewlines(_acc);
 }
 
 std::string LogoutReq::toString() {

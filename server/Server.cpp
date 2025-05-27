@@ -1,4 +1,6 @@
 #include "Server.h"
+
+#include "AddFriendReq.h"
 #include "LoginReq.h"
 #include "RegisterReq.h"
 #include "Common.h"
@@ -25,12 +27,6 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
             RegisterReq registerReq(msg);
             const Response resp = registerReq.handler();
             LOG_INFO << "response: " << resp.toString();
-            std::lock_guard<std::mutex> lock(connMutex_);
-            if (loginUser_.find(registerReq.getAccount()) == loginUser_.end()) {
-                loginUser_[registerReq.getAccount()] = conn;
-            } else {
-
-            }
             conn->send(resp.toString());
         }
         else if (type == login)
@@ -39,14 +35,27 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
             LOG_INFO << "login: " << loginReq.toString();
             Response resp = loginReq.handler();
             LOG_INFO << "response: " << resp.toString();
+            std::lock_guard<std::mutex> lock(connMutex_);
+            if (loginUser_.find(loginReq.getAccount()) == loginUser_.end()) {
+                loginUser_[loginReq.getAccount()] = conn;
+            } else {
+                Response repeatLogin(false, "account already login");
+                conn->send(repeatLogin.toString());
+            }
             conn->send(resp.toString());
         }
         else if (type == logout)
         {
-            LOG_INFO << "logout: " << msg;
+            LOG_INFO << "msg: " << msg;
             LogoutReq logoutReq(msg);
             Response resp = logoutReq.handler();
             LOG_INFO << "response: " << resp.toString();
+            LOG_INFO << "logoutReq: " << logoutReq.toString();
+            std::lock_guard<std::mutex> lock(connMutex_);
+            auto it = loginUser_.find(logoutReq.getAccount());
+            if (it != loginUser_.end()) {
+                loginUser_.erase(it);
+            }
             conn->send(resp.toString());
         }
         else if (type == sendMsg)
@@ -55,7 +64,11 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         }
         else if (type == addFriend)
         {
-            conn->send("addFriend unrealized");
+            LOG_INFO << "addFriend: " << msg;
+            AddFriendReq addFriendReq(msg);
+            Response resp = addFriendReq.handler();
+            LOG_INFO << "response: " << resp.toString();
+            conn->send(resp.toString());
         }
     } catch(const std::invalid_argument& e) {
        LOG_ERROR << "Invalid argument: " << e.what(); 

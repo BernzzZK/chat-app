@@ -73,7 +73,7 @@ std::string UserFunction::addfriend(std::string &acc) {
     }
     AddFriendReq addFriendReq(username, curr_username);
     std::string req = addFriendReq.toString();
-    return "";
+    return req;
 }
 
 std::string UserFunction::logout(std::string &acc) {

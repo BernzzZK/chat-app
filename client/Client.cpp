@@ -105,7 +105,7 @@ void ChatClient::start() {
             switch (choice) {
                 case 1: {
                     send(UserFunction::login(&acc_));
-                    std::unique_lock<std::mutex> lck(resp_mutex_);
+                    std::unique_lock lck(resp_mutex_);
                     while (!rec_resp_) {
                         resp_cv_.wait_for(lck, std::chrono::seconds(3));
                     }
@@ -120,7 +120,7 @@ void ChatClient::start() {
                 }
                 case 2: {
                     send(UserFunction::registerUser());
-                    std::unique_lock<std::mutex> lck(resp_mutex_);
+                    std::unique_lock lck(resp_mutex_);
                     while (!rec_resp_) {
                         resp_cv_.wait_for(lck, std::chrono::seconds(3));
                     }
@@ -147,16 +147,25 @@ void ChatClient::start() {
                     break;
                 }
                 case 2: {
-                    std::unique_lock<std::mutex> lck(acc_mutex_);
+                    std::unique_lock lck(acc_mutex_);
                     send(UserFunction::addfriend(acc_));
                     lck.unlock();
+                    std::unique_lock lckr(resp_mutex_);
+                    while (!rec_resp_) {
+                        resp_cv_.wait_for(lckr, std::chrono::seconds(3));
+                    }
+                    if (resp_.isSuccess()) {
+                        LOG_INFO << "addfriend success: " << resp_.getReason();
+                    } else {
+                        LOG_INFO << "addfriend failed: " << resp_.getReason();
+                    }
                     break;
                 }
                 case 3: {
-                    std::unique_lock<std::mutex> lck(acc_mutex_);
+                    std::unique_lock lck(acc_mutex_);
                     send(UserFunction::logout(acc_));
                     lck.unlock();
-                    std::unique_lock<std::mutex> lckr(resp_mutex_);
+                    std::unique_lock lckr(resp_mutex_);
                     while (!rec_resp_) {
                         resp_cv_.wait_for(lckr, std::chrono::seconds(3));
                     }

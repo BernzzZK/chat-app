@@ -5,8 +5,10 @@
 #include "AddFriend.h"
 #include <muduo/base/Logging.h>
 #include "MysqlConnGuard.h"
+#include <algorithm>
 
-bool sendFriendRequest(MysqlConnGuard& mysql_db, const std::string& _curr_acc, const std::string& _friendName) {
+bool sendFriendRequest(const std::string& _curr_acc, const std::string& _friendName) {
+    MysqlConnGuard mysql_db;
     // 首先查询发送者的ID
     std::string get_sender_id_query = "SELECT ID FROM User WHERE account = '" + _curr_acc + "'";
     MYSQL_RES *sender_res = (*mysql_db)->Query(get_sender_id_query);
@@ -16,7 +18,7 @@ bool sendFriendRequest(MysqlConnGuard& mysql_db, const std::string& _curr_acc, c
     }
 
     MYSQL_ROW sender_row = mysql_fetch_row(sender_res);
-    if (sender_row == nullptr || sender_row[0] == nullptr) {
+    if (sender_row == nullptr) {
         LOG_ERROR << "Sender account not found: " << _curr_acc;
         mysql_free_result(sender_res);
         return false;
@@ -33,7 +35,7 @@ bool sendFriendRequest(MysqlConnGuard& mysql_db, const std::string& _curr_acc, c
     }
 
     MYSQL_ROW receiver_row = mysql_fetch_row(receiver_res);
-    if (receiver_row == nullptr || receiver_row[0] == nullptr) {
+    if (receiver_row == nullptr) {
         LOG_ERROR << "Receiver account not found: " << _friendName;
         mysql_free_result(receiver_res);
         return false;
@@ -42,12 +44,11 @@ bool sendFriendRequest(MysqlConnGuard& mysql_db, const std::string& _curr_acc, c
     mysql_free_result(receiver_res);
 
     // 构造并执行插入好友请求的SQL语句
-    std::string insert_friend_request_query = "INSERT INTO Friend_Req (from_id, to_id, status, create_time) VALUES ("
-                                              + std::to_string(from_id) + ", "
-                                              + std::to_string(to_id) + ", 'pending', CURRENT_TIMESTAMP)";
-
-    if ((*mysql_db)->Query(insert_friend_request_query.c_str()) == nullptr) {
-        LOG_ERROR << "Failed to insert friend request.";
+    std::string insert_friend_request_query = "insert into Friend_Req(from_id, to_id, status, create_time) values('"
+                                              + std::to_string(from_id) + "', '"
+                                              + std::to_string(to_id) + "', 'pending', CURRENT_TIMESTAMP)";
+    LOG_INFO << "query: " << insert_friend_request_query;
+    if ((*mysql_db)->Query(insert_friend_request_query) != nullptr) {
         return false;
     }
     return true;
@@ -57,12 +58,18 @@ AddFriend::AddFriend(const std::string &friendName, const std::string &curr_acc)
         : _friendName(friendName)
         , _curr_acc(curr_acc)
 {
+    auto removeNewlines = [](std::string &str) {
+        str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
+        str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+    };
+    removeNewlines(_friendName);
+    removeNewlines(_curr_acc);
 }
 
 std::string AddFriend::addFriend() {
     MysqlConnGuard mysql_db;
     if (!mysql_db.isValid()) {
-        return "Error in query";
+        return "Error in db";
     }
     // 检查好友是否存在
     std::string query = "select account from User where account = '" + _friendName + "'";
@@ -112,7 +119,7 @@ std::string AddFriend::addFriend() {
     }
 
     // 插入好友请求
-    if (sendFriendRequest(mysql_db, _curr_acc, _friendName)) {
+    if (sendFriendRequest(_curr_acc, _friendName)) {
         return "";
     } else {
         return "Error to send request";

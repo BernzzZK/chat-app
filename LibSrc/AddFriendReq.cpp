@@ -8,7 +8,7 @@
 #include "AddFriend.h"
 
 AddFriendReq::AddFriendReq(const std::string &friendName, const std::string &curr_acc)
-        : _reqHead(logout, muduo::Timestamp::now().toFormattedString())
+        : _reqHead(addFriend, muduo::Timestamp::now().toFormattedString())
         , _friendName(friendName)
         , _curr_acc(curr_acc)
 {
