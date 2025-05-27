@@ -21,8 +21,8 @@ private:
     net::TcpServer server_;
     std::mutex connMutex_;
     std::unordered_map<std::string, muduo::net::TcpConnectionPtr> connections_;
+    std::unordered_map<std::string, muduo::net::TcpConnectionPtr> loginUser_;
 
     void onConnection(const muduo::net::TcpConnectionPtr &conn);
     void onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time);
-    void broadcast(const std::string &message);
 };

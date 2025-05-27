@@ -33,9 +33,12 @@ private:
     muduo::MutexLock mutex_;
     muduo::net::TcpConnectionPtr conn_;
 
-    muduo::MutexLock resp_mutex_;
+    std::mutex resp_mutex_;
     std::condition_variable resp_cv_;
     Response resp_;
-
+    std::atomic<bool> rec_resp_{false};
     std::atomic<bool> isLogin_{false};
+
+    std::mutex acc_mutex_;
+    std::string acc_;
 };

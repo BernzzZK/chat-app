@@ -13,6 +13,7 @@ public:
     Response handler() const;
     std::string toString();
     void toLoginReq(std::string);
+    std::string getAccount() const { return _acc;}
 
     LoginReq(std::string);
     LoginReq(std::string, int type);

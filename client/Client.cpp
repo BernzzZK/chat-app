@@ -9,8 +9,9 @@ using namespace muduo;
 using namespace muduo::net;
 
 ChatClient::ChatClient(EventLoop *loop, const InetAddress &serverAddr)
-    : client_(loop, serverAddr, "ChatClient"),
-      loop_(loop)
+    : client_(loop, serverAddr, "ChatClient")
+    , loop_(loop)
+    , acc_("")
 {
     client_.setConnectionCallback(
         std::bind(&ChatClient::onConnection, this, _1));
@@ -71,11 +72,11 @@ void ChatClient::onMessage(const TcpConnectionPtr &conn,
     } else {
         if (msg[0] != '@') {
             LOG_INFO << "[server]: " << msg;
-        }
-        else {
-            MutexLockGuard lock(mutex_);
+        } else {
+            std::unique_lock<std::mutex> lck(resp_mutex_);
             resp_ = Response(msg);
-            LOG_INFO << "request " << (resp_.isSuccess() ? ": " : "fail: ") << resp_.getReason();
+            rec_resp_ = true;
+            resp_cv_.notify_one();
         }
     }
 }
@@ -103,16 +104,38 @@ void ChatClient::start() {
         if (isLogin_ ==false) {
             switch (choice) {
                 case 1: {
-                    send(UserFunction::login());
+                    send(UserFunction::login(&acc_));
+                    std::unique_lock<std::mutex> lck(resp_mutex_);
+                    while (!rec_resp_) {
+                        resp_cv_.wait_for(lck, std::chrono::seconds(3));
+                    }
+                    if (resp_.isSuccess()) {
+                        isLogin_ = true;
+                        LOG_INFO << "account " << acc_ << " Login success: " << resp_.getReason();
+                    } else {
+                        LOG_INFO << "Login failed: " << resp_.getReason();
+                    }
+                    rec_resp_ = false;
                     break;
                 }
                 case 2: {
                     send(UserFunction::registerUser());
+                    std::unique_lock<std::mutex> lck(resp_mutex_);
+                    while (!rec_resp_) {
+                        resp_cv_.wait_for(lck, std::chrono::seconds(3));
+                    }
+                    if (resp_.isSuccess()) {
+                        LOG_INFO << "register success: " << resp_.getReason();
+                    } else {
+                        LOG_INFO << "register failed: " << resp_.getReason();
+                    }
+                    rec_resp_ = false;
+                    lck.unlock();
                     break;
                 }
                 case 3:
                     disconnect();
-                    return;
+                    exit(0);
                 default:
                     std::cout << "无效选项!\n";
             }
@@ -127,8 +150,20 @@ void ChatClient::start() {
                     break;
                 }
                 case 3: {
-                    send(UserFunction::logout());
-                    isLogin_ = false;
+                    std::unique_lock<std::mutex> lck(acc_mutex_);
+                    send(UserFunction::logout(acc_));
+                    lck.unlock();
+                    std::unique_lock<std::mutex> lckr(resp_mutex_);
+                    while (!rec_resp_) {
+                        resp_cv_.wait_for(lckr, std::chrono::seconds(3));
+                    }
+                    if (resp_.isSuccess()) {
+                        isLogin_ = false;
+                        LOG_INFO << "account " << acc_ << " Logout success: " << resp_.getReason();
+                    } else {
+                        LOG_INFO << "Login failed: " << resp_.getReason();
+                    }
+                    rec_resp_ = false;
                     break;
                 }
                 default:
@@ -136,6 +171,5 @@ void ChatClient::start() {
                     break;
             }
         }
-
     }
 }

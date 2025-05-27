@@ -2,6 +2,7 @@
 #include "LoginReq.h"
 #include "RegisterReq.h"
 #include "Common.h"
+#include "LogoutReq.h"
 #include "Response.h"
 #include "MysqlConnPool.h"
 using namespace std::placeholders;
@@ -18,25 +19,43 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr)
 void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
     try{
-        reqType type = (reqType)std::stoi(common::parsing(msg));
+        reqType type = static_cast<reqType>(std::stoi(common::parsing(msg)));
         if (type == registered)
         {
-            conn->send("registered unrealized");
+            RegisterReq registerReq(msg);
+            const Response resp = registerReq.handler();
+            LOG_INFO << "response: " << resp.toString();
+            std::lock_guard<std::mutex> lock(connMutex_);
+            if (loginUser_.find(registerReq.getAccount()) == loginUser_.end()) {
+                loginUser_[registerReq.getAccount()] = conn;
+            } else {
+
+            }
+            conn->send(resp.toString());
         }
         else if (type == login)
         {
             LoginReq loginReq(msg);
-            const Response resp = loginReq.handler();
+            LOG_INFO << "login: " << loginReq.toString();
+            Response resp = loginReq.handler();
             LOG_INFO << "response: " << resp.toString();
             conn->send(resp.toString());
         }
         else if (type == logout)
         {
-            conn->send("logout unrealized");
+            LOG_INFO << "logout: " << msg;
+            LogoutReq logoutReq(msg);
+            Response resp = logoutReq.handler();
+            LOG_INFO << "response: " << resp.toString();
+            conn->send(resp.toString());
         }
         else if (type == sendMsg)
         {
             conn->send("sendMsg unrealized");
+        }
+        else if (type == addFriend)
+        {
+            conn->send("addFriend unrealized");
         }
     } catch(const std::invalid_argument& e) {
        LOG_ERROR << "Invalid argument: " << e.what(); 
@@ -69,6 +88,13 @@ void Server::onConnection(const muduo::net::TcpConnectionPtr &conn) {
         LOG_INFO << "Connection closed: " << conn->name();
         {
             std::lock_guard<std::mutex> lock(connMutex_);
+            for (auto it : loginUser_) {
+                if (it.second == conn) {
+                    const auto acc = it.first;
+                    loginUser_.erase(acc);
+                    break;
+                }
+            }
             connections_.erase(conn->name());
         }
     }

@@ -37,7 +37,6 @@ void Response::toResponse(std::string &resp) {
         LOG_ERROR << "Invalid response format";
         return;
     }
-    LOG_INFO << "resp: " << resp;
     const auto res = common::splitString(resp);
     _success = std::stoi(res[0]);
     _time = res[1];
