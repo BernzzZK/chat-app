@@ -18,5 +18,7 @@ public:
     LoginReq(const std::string &);
     LoginReq(std::string, int type);
 
+    LoginReq(const std::string & account, const std::string & password, bool keep_alive);
+
     ~LoginReq() {};
 };

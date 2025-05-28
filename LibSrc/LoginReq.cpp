@@ -4,13 +4,12 @@
 #include <iostream>
 #include <muduo/base/Logging.h>
 
-LoginReq::LoginReq(std::string req, int type)
-    : _acc("")
-    , _pwd("")
-    , _keepLogin(false)
+LoginReq::LoginReq(const std::string & account, const std::string & password, bool keep_alive)
+    : _acc(account)
+    , _pwd(password)
+    , _keepLogin(keep_alive)
 {
     _reqHead.set(login, muduo::Timestamp::now().toFormattedString());
-    toLoginReq(req);
 }
 
 LoginReq::LoginReq(const std::string& req)

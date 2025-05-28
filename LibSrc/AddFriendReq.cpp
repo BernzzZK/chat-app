@@ -42,7 +42,7 @@ Response AddFriendReq::handler() const {
         const std::string res = addfriend.addFriend();
         Response resp;
         if (res.empty()) {
-                resp.set(true, "add friend success");
+                resp.set(true, "send friend application success");
         }
         else {
                 resp.set(false, res);

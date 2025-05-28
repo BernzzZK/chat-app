@@ -1,5 +1,6 @@
 #include "Login.h"
 #include "MysqlConnGuard.h"
+#include "Common.h"
 
 Login::Login(std::string acc, std::string pwd, bool keepLogin)
     : _acc(acc), _pwd(pwd), _keepLogin(keepLogin)
@@ -9,6 +10,8 @@ Login::Login(std::string acc, std::string pwd, bool keepLogin)
 std::string Login::validateLogin()
 {
     MysqlConnGuard mysql_db;
+    common::removeNewline(_acc);
+    common::removeNewline(_pwd);
     std::string query = "select password from User where account = '" + _acc + "'";
     MYSQL_RES *res;
     if (mysql_db.isValid()) {

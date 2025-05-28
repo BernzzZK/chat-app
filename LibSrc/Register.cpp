@@ -5,8 +5,8 @@
 #include "Register.h"
 #include <muduo/base/Logging.h>
 #include "MysqlConnGuard.h"
-#include <algorithm>
 #include "UniqueHashGenerator.h"
+#include "Common.h"
 
 Register::Register(std::string acc, std::string pwd)
     : _acc(acc)
@@ -17,14 +17,8 @@ Register::Register(std::string acc, std::string pwd)
 
 std::string Register::validateRegister() const {
     MysqlConnGuard mysql_db;
-
-    // 1. 移除换行符
-    auto removeNewlines = [](std::string &str) {
-        str.erase(std::remove(str.begin(), str.end(), '\n'), str.end());
-        str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
-    };
-    removeNewlines(_acc);
-    removeNewlines(_pwd);
+    common::removeNewline(_acc);
+    common::removeNewline(_pwd);
 
     // 2. 检查账号是否已存在
     const std::string query = "SELECT account FROM User WHERE account = '" + _acc + "'";

@@ -37,7 +37,9 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
             LOG_INFO << "response: " << resp.toString();
             std::lock_guard<std::mutex> lock(connMutex_);
             if (loginUser_.find(loginReq.getAccount()) == loginUser_.end()) {
-                loginUser_[loginReq.getAccount()] = conn;
+                if (resp.isSuccess()) {
+                    loginUser_[loginReq.getAccount()] = conn;
+                }
             } else {
                 Response repeatLogin(false, "account already login");
                 conn->send(repeatLogin.toString());
