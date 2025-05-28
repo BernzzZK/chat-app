@@ -55,3 +55,9 @@ bool Response::isSuccess() const {
 std::string Response::getReason() const {
     return _failReason;
 }
+
+void Response::makeEmpty() {
+    this->_success = false;
+    this->_time = "";
+    this->_failReason = "";
+}

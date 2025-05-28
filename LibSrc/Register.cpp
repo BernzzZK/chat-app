@@ -43,7 +43,7 @@ std::string Register::validateRegister() const {
 
     const std::string insert =
         "INSERT INTO User(ID, username, account, password, role, created_time) "
-        "VALUES( " + id +", '默认名称', '" + _acc + "', '" + _pwd + "', 'user', 'CURRENT_TIMESTAMP')";
+        "VALUES( " + id +", '默认名称', '" + _acc + "', '" + _pwd + "', 'user', CURRENT_TIMESTAMP)";
     if ((*mysql_db)->Query(insert)) {
         return "Error in insert";
     }

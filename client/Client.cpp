@@ -99,8 +99,17 @@ void ChatClient::start() {
         }
 
         int choice;
-        std::cin >> choice;
-        std::cin.ignore(); // 清除输入缓冲区
+        while (true) {
+            if (std::cin >> choice) {
+                break;
+            } else {
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                std::cout << "输入无效，请重新输入！" << std::endl;
+                std::cout << "输入选项: ";
+            }
+        }
+
         if (isLogin_ ==false) {
             switch (choice) {
                 case 1: {
@@ -138,7 +147,7 @@ void ChatClient::start() {
                     sleep(1);
                     exit(0);
                 default:
-                    std::cout << "无效选项!\n";
+                    LOG_ERROR << "无效选项!";
             }
         } else {
             switch (choice) {
@@ -154,11 +163,13 @@ void ChatClient::start() {
                     while (!rec_resp_) {
                         resp_cv_.wait_for(lckr, std::chrono::seconds(3));
                     }
+                    LOG_INFO << "msg: " << resp_.toString();
                     if (resp_.isSuccess()) {
                         LOG_INFO << "addfriend success: " << resp_.getReason();
                     } else {
                         LOG_INFO << "addfriend failed: " << resp_.getReason();
                     }
+                    rec_resp_ = false;
                     break;
                 }
                 case 3: {
@@ -179,7 +190,7 @@ void ChatClient::start() {
                     break;
                 }
                 default:
-                    std::cout << "无效选项!\n";
+                    LOG_ERROR << "无效选项!";
                     break;
             }
         }

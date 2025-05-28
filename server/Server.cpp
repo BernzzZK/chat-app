@@ -46,11 +46,9 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         }
         else if (type == logout)
         {
-            LOG_INFO << "msg: " << msg;
             LogoutReq logoutReq(msg);
             Response resp = logoutReq.handler();
             LOG_INFO << "response: " << resp.toString();
-            LOG_INFO << "logoutReq: " << logoutReq.toString();
             std::lock_guard<std::mutex> lock(connMutex_);
             auto it = loginUser_.find(logoutReq.getAccount());
             if (it != loginUser_.end()) {
@@ -64,7 +62,6 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         }
         else if (type == addFriend)
         {
-            LOG_INFO << "addFriend: " << msg;
             AddFriendReq addFriendReq(msg);
             Response resp = addFriendReq.handler();
             LOG_INFO << "response: " << resp.toString();
