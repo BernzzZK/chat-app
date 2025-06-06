@@ -4,7 +4,7 @@
 
 #include "Register.h"
 #include <muduo/base/Logging.h>
-#include "MysqlConnGuard.h"
+#include "DBConnGuard.h"
 #include "UniqueHashGenerator.h"
 #include "Common.h"
 

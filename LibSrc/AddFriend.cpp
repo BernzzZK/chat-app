@@ -4,7 +4,7 @@
 
 #include "AddFriend.h"
 #include <muduo/base/Logging.h>
-#include "MysqlConnGuard.h"
+#include "DBConnGuard.h"
 #include "Common.h"
 
 AddFriend::AddFriend(const std::string &friendName, const std::string &curr_acc)

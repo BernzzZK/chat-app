@@ -13,7 +13,7 @@ class Request;
 class Server {
 public:
     Server(net::EventLoop *loop, const net::InetAddress listenaddr);
-    ~Server() {};
+    ~Server();
 
     void start();
 

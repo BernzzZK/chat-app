@@ -31,6 +31,8 @@ set(LIB_SOURCES
         UniqueHashGenerator.cpp
         AddFriendReq.cpp
         AddFriend.cpp
+        ../HeadFile/RedisConnPool.h
+        RedisConnPool.cpp
 )
 
 # 创建共享库

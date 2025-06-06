@@ -1,26 +1,51 @@
 #include "RedisConn.h"
 #include <muduo/base/Logging.h>
-using namespace muduo;
 
-RedisConn::RedisConn(string ip = "127.0.0.1", unsigned int port = 6379)
+RedisConn::RedisConn(const std::string& ip, unsigned int port)
     : ip_(ip)
     , port_(port)
 {
     conn_ = redisConnect(ip_.c_str(), port_);
-    if(conn_->err != 0)
-        LOG_ERROR << "Redis connect error!";
+    if (!conn_ || conn_->err) {
+        LOG_ERROR << "Redis connect error: "
+                 << (conn_ ? conn_->errstr : "connection failed");
+        if (conn_) {
+            redisFree(conn_);
+            conn_ = nullptr;
+        }
+    }
 }
 
 RedisConn::~RedisConn() {
-    redisFree(this->conn_);
+    if (conn_) {
+        redisFree(conn_);
+    }
 }
 
-redisReply *RedisConn::query(string cmd) {
-    void *tmp = redisCommand(conn_, cmd.c_str());
-    rpy_ = (redisReply *)tmp;
-    if (rpy_->type == 6) {
-        freeReplyObject(this->rpy_);
+redisReply* RedisConn::execute(const std::string& cmd) {
+    if (!conn_) return nullptr;
+
+    redisReply* reply = static_cast<redisReply*>(redisCommand(conn_, cmd.c_str()));
+    if (!reply) {
+        LOG_ERROR << "Redis command failed: " << cmd;
         return nullptr;
     }
-    return rpy_;
+
+    if (reply->type == REDIS_REPLY_ERROR) {
+        LOG_ERROR << "Redis error: " << reply->str;
+        freeReplyObject(reply);
+        return nullptr;
+    }
+
+    return reply;
+}
+
+bool RedisConn::ping() {
+    redisReply* reply = execute("PING");
+    if (!reply) return false;
+
+    bool ok = reply->type == REDIS_REPLY_STATUS &&
+              std::string(reply->str) == "PONG";
+    freeReplyObject(reply);
+    return ok;
 }

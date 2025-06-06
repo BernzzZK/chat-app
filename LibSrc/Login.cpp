@@ -1,5 +1,5 @@
 #include "Login.h"
-#include "MysqlConnGuard.h"
+#include "DBConnGuard.h"
 #include "Common.h"
 
 Login::Login(std::string acc, std::string pwd, bool keepLogin)
