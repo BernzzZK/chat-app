@@ -1,0 +1,17 @@
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  min_conn: 5
+  max_conn: 20
+  max_wait_ms: 1000
+
+mysql:
+  host: "127.0.0.1"
+  user: "root"
+  pwd: "123456"
+  db: "chat"
+  port: 3306
+  char_set: "utf8mb4"
+  min_conn: 5
+  max_conn: 20
+  max_wait_ms: 1000

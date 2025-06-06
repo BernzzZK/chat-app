@@ -34,6 +34,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         ChatLib
         muduo_net
         muduo_base
+        yaml-cpp
         ${HIREDIS_LIB}
         ${MYSQLCLIENT_LIB}
         Threads::Threads

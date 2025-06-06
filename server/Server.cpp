@@ -9,22 +9,42 @@
 #include "Response.h"
 #include "MysqlConnPool.h"
 #include "RedisConnPool.h"
+#include <fstream>
+#include <yaml-cpp/yaml.h>
 using namespace std::placeholders;
 
-Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr) 
+Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName = "")
     : server_(loop, listenaddr, "chat server")
+    , fileName_(fileName)
 {
     server_.setConnectionCallback(bind(&Server::onConnection, this, _1));
     server_.setMessageCallback(bind(&Server::onMessage, this, _1, _2, _3));
     server_.setThreadNum(4);
-    MysqlConnPool::instance().init("127.0.0.1", "root", "pwd", "chat");
-    RedisConnPool::instance().init("127.0.0.1", 6379, 4, 8, 1000);
+    LoadConfig(fileName_);
+    MysqlConnPool::instance().init(
+        mysqlConfig_.host,
+        mysqlConfig_.user,
+        mysqlConfig_.pwd,
+        mysqlConfig_.db,
+        mysqlConfig_.port,
+        mysqlConfig_.char_set,
+        mysqlConfig_.min_conn,
+        mysqlConfig_.max_conn,
+        mysqlConfig_.max_wait_ms
+        );
+    RedisConnPool::instance().init(
+        redisConfig_.host,
+        redisConfig_.port,
+        redisConfig_.min_conn,
+        redisConfig_.max_conn,
+        redisConfig_.max_wait_ms
+        );
 }
 
 void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
     try{
-        reqType type = static_cast<reqType>(std::stoi(common::parsing(msg)));
+        auto type = static_cast<reqType>(std::stoi(common::parsing(msg)));
         if (type == registered)
         {
             RegisterReq registerReq(msg);
@@ -126,4 +146,39 @@ Server::~Server() {
     MysqlConnPool::instance().stop();
     RedisConnPool::instance().stop();
 }
+
+bool Server::LoadConfig(const std::string &filename) {
+    try {
+        YAML::Node config = YAML::LoadFile(filename);
+
+        // 解析Redis配置
+        if (config["redis"]) {
+            YAML::Node redisNode = config["redis"];
+            if (redisNode["host"]) redisConfig_.host = redisNode["host"].as<std::string>();
+            if (redisNode["port"]) redisConfig_.port = redisNode["port"].as<unsigned int>();
+            if (redisNode["min_conn"]) redisConfig_.min_conn = redisNode["min_conn"].as<int>();
+            if (redisNode["max_conn"]) redisConfig_.max_conn = redisNode["max_conn"].as<int>();
+            if (redisNode["max_wait_ms"]) redisConfig_.max_wait_ms = redisNode["max_wait_ms"].as<int>();
+        }
+
+        // 解析MySQL配置
+        if (config["mysql"]) {
+            YAML::Node mysqlNode = config["mysql"];
+            if (mysqlNode["host"]) mysqlConfig_.host = mysqlNode["host"].as<std::string>();
+            if (mysqlNode["user"]) mysqlConfig_.user = mysqlNode["user"].as<std::string>();
+            if (mysqlNode["pwd"]) mysqlConfig_.pwd = mysqlNode["pwd"].as<std::string>();
+            if (mysqlNode["db"]) mysqlConfig_.db = mysqlNode["db"].as<std::string>();
+            if (mysqlNode["port"]) mysqlConfig_.port = mysqlNode["port"].as<unsigned int>();
+            if (mysqlNode["char_set"]) mysqlConfig_.char_set = mysqlNode["char_set"].as<std::string>();
+            if (mysqlNode["min_conn"]) mysqlConfig_.min_conn = mysqlNode["min_conn"].as<int>();
+            if (mysqlNode["max_conn"]) mysqlConfig_.max_conn = mysqlNode["max_conn"].as<int>();
+            if (mysqlNode["max_wait_ms"]) mysqlConfig_.max_wait_ms = mysqlNode["max_wait_ms"].as<int>();
+        }
+        return true;
+    } catch (const YAML::Exception& e) {
+        LOG_ERROR << "Config Error: " << e.what();
+        return false;
+    }
+}
+
 
