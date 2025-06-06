@@ -18,7 +18,7 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr)
     server_.setMessageCallback(bind(&Server::onMessage, this, _1, _2, _3));
     server_.setThreadNum(4);
     MysqlConnPool::instance().init("43.142.101.247", "root", "20040508", "chat");
-    RedisConnPool::instance().init("43.142.101.247", 6379, 4, 8, 1000);
+    RedisConnPool::instance().init("127.0.0.1", 6379, 4, 8, 1000);
 }
 
 void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
