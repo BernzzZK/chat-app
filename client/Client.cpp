@@ -72,11 +72,13 @@ void ChatClient::onMessage(const TcpConnectionPtr &conn,
     } else {
         if (msg[0] != '@') {
             LOG_INFO << "[server]: " << msg;
-        } else {
+        } else if (msg[0] == '@'){
             std::unique_lock<std::mutex> lck(resp_mutex_);
             resp_ = Response(msg);
             rec_resp_ = true;
             resp_cv_.notify_one();
+        } else if (msg[0] == '#'){
+
         }
     }
 }

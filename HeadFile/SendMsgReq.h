@@ -16,6 +16,9 @@ public:
     std::string toString();
     void toSendMsgReq(const std::string &info);
     Response handler() const;
+    const std::string &getMsg() const {return msg_;};
+    const std::string &getSenderAcc() const { return sender_acc_; };
+    const std::string &getReceiver() const { return receiver_acc_; };
 
 private:
     Request reqHead_;

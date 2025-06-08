@@ -1,5 +1,4 @@
 #include "Server.h"
-
 #include "AddFriendReq.h"
 #include "LoginReq.h"
 #include "RegisterReq.h"
@@ -11,8 +10,8 @@
 #include "RedisConnPool.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-
 #include "SendMsgReq.h"
+
 using namespace std::placeholders;
 
 Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName = "")
@@ -43,7 +42,7 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::str
         );
 }
 
-void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
+void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
     try{
         auto type = static_cast<reqType>(std::stoi(common::parsing(msg)));
@@ -58,13 +57,19 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
             LoginReq loginReq(msg);
             Response resp = loginReq.handler();
             std::lock_guard lock(connMutex_);
-            if (loginUser_.find(loginReq.getAccount()) == loginUser_.end()) {
+            const std::string user = loginReq.getAccount();
+            if (loginUser_.find(user) == loginUser_.end()) {
                 if (resp.isSuccess()) {
-                    loginUser_[loginReq.getAccount()] = conn;
-                    RedisConnGuard redisGuard;
-                    if (redisGuard.isValid()) {
-                        (*redisGuard)->execute("sadd loginUser " + loginReq.getAccount());
+                    loginUser_[user] = conn;
+                    {
+                        RedisConnGuard redisGuard;
+                        if (redisGuard.isValid()) {
+                            (*redisGuard)->execute("sadd loginUser " + user);
+                        }
                     }
+                    // @TODO: 登录时触发，检查该用户是否有未读信息或好友请求
+                    hasUnreadMsg(user, conn);
+                    hasUnprocessAddFriend(user, conn);
                 }
             } else {
                 Response repeatLogin(false, "account already login");
@@ -89,21 +94,35 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
                 Response repeatLogout(false, "account not login");
                 conn->send(repeatLogout.toString());
             }
-
         }
         else if (type == sendMsg)
         {
             LOG_INFO << "msg: " << msg;
             SendMsgReq sendMsgReq(msg);
             Response resp = sendMsgReq.handler();
+            // @TODO: 发送给对方(重新设计一个类，封装发送信息的逻辑)
+            if (resp.isSuccess()) {
+                const auto &to = sendMsgReq.getReceiver();
+                std::lock_guard lock(connMutex_);
+                auto it = loginUser_.find(to);
+                if (it!= loginUser_.end()) {
+                    it->second->send(sendMsgReq.toString());
+                }
+            }
             conn->send(resp.toString());
         }
         else if (type == addFriend)
         {
             AddFriendReq addFriendReq(msg);
             Response resp = addFriendReq.handler();
+            // @TODO: 发送给对方(重新设计一个类，封装发送好友请求的逻辑)
             if (resp.isSuccess()) {
-
+                const auto &to = addFriendReq.getAccount();
+                std::lock_guard lock(connMutex_);
+                auto it = loginUser_.find(to);
+                if (it!= loginUser_.end()) {
+                    it->second->send(addFriendReq.toString());
+                }
             }
             conn->send(resp.toString());
         }
@@ -132,6 +151,10 @@ void Server::onConnection(const muduo::net::TcpConnectionPtr &conn) {
                 if (it.second == conn) {
                     const auto acc = it.first;
                     loginUser_.erase(acc);
+                    RedisConnGuard redisGuard;
+                    if (redisGuard.isValid()) {
+                        (*redisGuard)->execute("srem loginUser " + acc);
+                    }
                     break;
                 }
             }
@@ -184,4 +207,42 @@ bool Server::LoadConfig(const std::string &filename) {
     }
 }
 
+void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &conn) {
+    // 检查未读信息并发送
+    MysqlConnGuard mysqlGuard;
+    if (!mysqlGuard.isValid()) {
+        LOG_ERROR << "mysql connection error";
+    }
+    std::string sql = "SELECT m.ID, m.content, m.create_time, m.is_read "
+                      "FROM Offline_Message m "
+                      "INNER JOIN User u ON m.receiver_id = u.ID "
+                      "WHERE u.account = '"+ user +"' AND m.is_read = 0;";
+    auto result = (*mysqlGuard)->Query(sql);
+    if (result != nullptr) {
+        while (auto row = mysql_fetch_row(result)) {
+            std::string msgId = row[0];
+            std::string content = row[1];
+            std::string createTime = row[2];
+            std::string isRead = row[3];
+            LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead;
+        }
+    }
+}
 
+void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnectionPtr &conn) {
+    // 检查未处理的好友请求并发送
+    MysqlConnGuard mysqlGuard;
+    std::string sql = "SELECT f.req_id, u.account AS from_account, f.create_time "
+                                      "FROM Friend_Req f "
+                                      "INNER JOIN User u ON f.from_id = u.ID "
+                                      "WHERE f.to_id = (SELECT ID FROM User WHERE account = '"+ user +"')";
+    auto result = (*mysqlGuard)->Query(sql);
+    if (result!= nullptr) {
+        while (auto row = mysql_fetch_row(result)) {
+            std::string reqId = row[0];
+            std::string fromAccount = row[1];
+            std::string createTime = row[2];
+            LOG_INFO << reqId << " " << fromAccount << " " << createTime;
+        }
+    }
+}

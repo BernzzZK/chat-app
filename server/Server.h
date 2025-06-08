@@ -8,7 +8,6 @@
 
 using namespace muduo;
 class Request;
-
 class Server {
 public:
     Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName);
@@ -27,6 +26,9 @@ private:
 
     void onConnection(const muduo::net::TcpConnectionPtr &conn);
     void onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time);
+
+    void hasUnreadMsg(const std::string& user, const net::TcpConnectionPtr &conn);
+    void hasUnprocessAddFriend(const std::string& user, const net::TcpConnectionPtr &conn);
 
     struct RedisPoolConfig
     {
