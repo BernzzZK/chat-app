@@ -6,12 +6,11 @@
 #include "LoginReq.h"
 #include <iostream>
 #include <muduo/base/Logging.h>
-
 #include "LogoutReq.h"
 #include "RegisterReq.h"
 #include "AddFriendReq.h"
 #include "Common.h"
-
+#include "SendMsgReq.h"
 
 std::string UserFunction::login(std::string *acc) {
     std::string username, password;
@@ -24,7 +23,11 @@ std::string UserFunction::login(std::string *acc) {
             std::cout << "账号名长度必须在4到16之间，请重新输入: ";
             std::getline(std::cin, username);
         } else if (common::containsInvalidChars(username)) {
-            std::cout << "账号名不能包含 @、# 或 $，请重新输入: ";
+            std::cout << "账号名不能包含以下字符： ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
             std::getline(std::cin, username);
         } else {
             break; // 输入合法
@@ -38,7 +41,11 @@ std::string UserFunction::login(std::string *acc) {
             std::cout << "密码长度必须在4到16之间，请重新输入: ";
             std::getline(std::cin, password);
         } else if (common::containsInvalidChars(password)) {
-            std::cout << "密码不能包含 @、# 或 $，请重新输入: ";
+            std::cout << "密码不能包含: ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
             std::getline(std::cin, password);
         } else {
             break; // 输入合法
@@ -69,7 +76,11 @@ std::string UserFunction::registerUser() {
             std::cout << "账号名长度必须在4到16之间，请重新输入: ";
             std::getline(std::cin, username);
         } else if (common::containsInvalidChars(username)) {
-            std::cout << "账号名不能包含 @、# 或 $，请重新输入: ";
+            std::cout << "账号名不能包含以下字符： ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
             std::getline(std::cin, username);
         } else {
             break; // 输入合法
@@ -83,7 +94,11 @@ std::string UserFunction::registerUser() {
             std::cout << "密码长度必须在4到16之间，请重新输入: ";
             std::getline(std::cin, password);
         } else if (common::containsInvalidChars(password)) {
-            std::cout << "密码不能包含 @、# 或 $，请重新输入: ";
+            std::cout << "密码不能包含: ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
             std::getline(std::cin, password);
         } else {
             break; // 输入合法
@@ -96,8 +111,41 @@ std::string UserFunction::registerUser() {
     return req;
 }
 
-std::string UserFunction::sendmsg() {
-    return "";
+std::string UserFunction::sendmsg(std::string &acc) {
+    const std::string curr_username = acc;
+    std::string username;
+    std::cin.ignore();
+    // 输入账号名
+    std::cout << "账号名: ";
+    std::getline(std::cin, username);
+    while (true) {
+        if (username.size() < 4 || username.size() > 16) {
+            std::cout << "账号名长度必须在4到16之间，请重新输入: ";
+            std::getline(std::cin, username);
+        } else if (common::containsInvalidChars(username)) {
+            std::cout << "账号名不能包含以下字符： ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
+            std::getline(std::cin, username);
+        } else {
+            break; // 输入合法
+        }
+    }
+    std::string msg;
+    std::cout << "消息: ";
+    std::getline(std::cin, msg);
+    std::string result;
+    for (char c : msg) {
+        if (common::illegalAlphabetSet.find(c) != common::illegalAlphabetSet.end()) {
+            result += '|';
+        }
+        result += c;
+    }
+    LOG_INFO << "result: " << result;
+    SendMsgReq sendMsgReq(result, curr_username, username);
+    return sendMsgReq.toString();
 }
 
 std::string UserFunction::addfriend(std::string &acc) {
@@ -112,7 +160,11 @@ std::string UserFunction::addfriend(std::string &acc) {
             std::cout << "账号名长度必须在4到16之间，请重新输入: ";
             std::getline(std::cin, username);
         } else if (common::containsInvalidChars(username)) {
-            std::cout << "账号名不能包含 @、# 或 $，请重新输入: ";
+            std::cout << "账号名不能包含以下字符： ";
+            for (const char c : common::illegalAlphabet) {
+                std::cout << c << " ";
+            }
+            std::cout << "请重新输入: ";
             std::getline(std::cin, username);
         } else {
             break; // 输入合法

@@ -11,6 +11,8 @@
 #include "RedisConnPool.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+
+#include "SendMsgReq.h"
 using namespace std::placeholders;
 
 Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName = "")
@@ -49,15 +51,12 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         {
             RegisterReq registerReq(msg);
             const Response resp = registerReq.handler();
-            LOG_INFO << "response: " << resp.toString();
             conn->send(resp.toString());
         }
         else if (type == login)
         {
             LoginReq loginReq(msg);
-            LOG_INFO << "login: " << loginReq.toString();
             Response resp = loginReq.handler();
-            LOG_INFO << "response: " << resp.toString();
             std::lock_guard lock(connMutex_);
             if (loginUser_.find(loginReq.getAccount()) == loginUser_.end()) {
                 if (resp.isSuccess()) {
@@ -77,7 +76,6 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         {
             LogoutReq logoutReq(msg);
             Response resp = logoutReq.handler();
-            LOG_INFO << "response: " << resp.toString();
             std::lock_guard lock(connMutex_);
             auto it = loginUser_.find(logoutReq.getAccount());
             if (it != loginUser_.end()) {
@@ -95,13 +93,18 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *bu
         }
         else if (type == sendMsg)
         {
-            conn->send("sendMsg unrealized");
+            LOG_INFO << "msg: " << msg;
+            SendMsgReq sendMsgReq(msg);
+            Response resp = sendMsgReq.handler();
+            conn->send(resp.toString());
         }
         else if (type == addFriend)
         {
             AddFriendReq addFriendReq(msg);
             Response resp = addFriendReq.handler();
-            LOG_INFO << "response: " << resp.toString();
+            if (resp.isSuccess()) {
+
+            }
             conn->send(resp.toString());
         }
     } catch(const std::invalid_argument& e) {

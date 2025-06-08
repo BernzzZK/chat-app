@@ -6,10 +6,12 @@
 #define USERFUNCTION_H
 #include <string>
 
+
+
 namespace UserFunction {
     std::string login(std::string *acc);
     std::string registerUser();
-    std::string sendmsg();
+    std::string sendmsg(std::string &acc);
     std::string addfriend(std::string &acc);
     std::string logout(std::string &acc);
 };

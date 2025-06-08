@@ -152,7 +152,19 @@ void ChatClient::start() {
         } else {
             switch (choice) {
                 case 1: {
-                    send(UserFunction::sendmsg());
+                    std::unique_lock lck(acc_mutex_);
+                    send(UserFunction::sendmsg(acc_));
+                    lck.unlock();
+                    std::unique_lock lckr(resp_mutex_);
+                    while (!rec_resp_) {
+                        resp_cv_.wait_for(lckr, std::chrono::seconds(3));
+                    }
+                    if (resp_.isSuccess()) {
+                        LOG_INFO << "sendmsg success: " << resp_.getReason();
+                    } else {
+                        LOG_INFO << "sendmsg failed: " << resp_.getReason();
+                    }
+                    rec_resp_ = false;
                     break;
                 }
                 case 2: {
@@ -163,7 +175,6 @@ void ChatClient::start() {
                     while (!rec_resp_) {
                         resp_cv_.wait_for(lckr, std::chrono::seconds(3));
                     }
-                    LOG_INFO << "msg: " << resp_.toString();
                     if (resp_.isSuccess()) {
                         LOG_INFO << "addfriend success: " << resp_.getReason();
                     } else {

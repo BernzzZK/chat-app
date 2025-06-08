@@ -2,45 +2,41 @@
 #include "Common.h"
 #include <algorithm>
 #include <unordered_map>
+#include <muduo/base/Logging.h>
 
-const std::vector<char> illegalAlphabet{'@', '#', '$', '{', '}', '[', ']', ';', ':', '\'', '\"', '\\', '|', '?', '*', '%', ','};
-const std::unordered_map<int, char> encryptionAlphabet = {
-    {0, 'a'}, {1, 'b'}, {2, 'c'}, {3, 'd'}, {4, 'e'}, {5, 'f'}, {6, 'g'}, {7, 'h'}, {8, 'i'}, {9, 'j'},
-    {10, 'k'}, {11, 'l'}, {12, 'm'}, {13, 'n'}, {14, 'o'}, {15, 'p'}, {16, 'q'}, {17, 'r'}, {18, 's'}, {19, 't'},
-    {20, 'u'}, {21, 'v'}, {22, 'w'}, {23, 'x'}, {24, 'y'}, {25, 'z'}, {26, 'A'}, {27, 'B'}, {28, 'C'}, {29, 'D'},
-    {30, 'E'}, {31, 'F'}, {32, 'G'}, {33, 'H'}, {34, 'I'}, {35, 'J'}, {36, 'K'}, {37, 'L'}, {38, 'M'}, {39, 'N'},
-    {40, 'O'}, {41, 'P'}, {42, 'Q'}, {43, 'R'}, {44, 'S'}, {45, 'T'}, {46, 'U'}, {47, 'V'}, {48, 'W'}, {49, 'X'},
-    {50, 'Y'}, {51, 'Z'}, {52, '0'}, {53, '1'}, {54, '2'}, {55, '3'}, {56, '4'}, {57, '5'}, {58, '6'}, {59, '7'},
-    {60, '8'}, {61, '9'}, {62, '!'}, {63, '^'}, {64, '&'}, {65, '('}, {66, ')'}, {67, '-'}, {68, '_'}, {69, '+'},
-    {70, '='}, {71, '`'}, {72, '~'}, {73, ','}, {74, '.'}, {75, '<'}, {76, '>'}
-};
+#include "DBConnGuard.h"
 
 std::vector<std::string> common::splitString(const std::string &input)
 {
     std::vector<std::string> elements;
-
     if (input.empty()) {
         return elements;
     }
-
     char delimiter = input[0];
-
-    size_t start = 1;
-    size_t end = input.find(delimiter, start);
-
-    while (end != std::string::npos) {
-        elements.push_back(input.substr(start, end - start));
-        start = end + 1;
-        end = input.find(delimiter, start);
+    std::string token;
+    bool escaped = false;
+    for (size_t i = 1; i < input.size(); ++i) {
+        char c = input[i];
+        if (escaped) {
+            token += c;
+            escaped = false;
+        } else if (c == '|') {
+            token += '|';
+            escaped = true;
+        } else if (c == delimiter) {
+            elements.push_back(token);
+            token.clear();
+        } else {
+            token += c;
+        }
     }
-
-    if (start < input.length()) {
-        elements.push_back(input.substr(start));
-    } else {
+    elements.push_back(token);
+    if (!input.empty() && input.back() == delimiter) {
         elements.push_back("");
     }
     return elements;
 }
+
 
 bool common::containsInvalidChars(const std::string &input) {
     for (char c : input) {
@@ -64,7 +60,7 @@ void common::removeNewline(std::string &str) {
 // 反向映射：字符 -> 下标
 const std::unordered_map<char, int> reverseAlphabet = []() {
     std::unordered_map<char, int> map;
-    for (const auto& pair : encryptionAlphabet) {
+    for (const auto& pair : common::encryptionAlphabet) {
         map[pair.second] = pair.first;
     }
     return map;
@@ -101,3 +97,47 @@ std::string common::encryption(const std::string &input) {
     return encrypted;
 }
 
+int common::getCountFromQuery(const std::string &query) {
+    MysqlConnGuard mysql_db;
+    MYSQL_RES* res = (*mysql_db)->Query(query);
+    if (!res) return -1;
+    MYSQL_ROW row = mysql_fetch_row(res);
+    int count = row ? atoi(row[0]) : 0;
+    mysql_free_result(res);
+    return count;
+}
+
+std::string common::getSingleValue(const std::string &query) {
+    MysqlConnGuard mysql_db;
+    // LOG_INFO << query;
+    MYSQL_RES* res = (*mysql_db)->Query(query);
+    if (!res) return "";
+    MYSQL_ROW row = mysql_fetch_row(res);
+    std::string value = row ? row[0] : "";
+    mysql_free_result(res);
+    return value;
+}
+
+std::string common::unescapeIllegalCharacters(const std::string& input) {
+    std::string result;
+    size_t i = 0;
+
+    while (i < input.length()) {
+        // 检查是否是转义字符 |
+        if (input[i] == '|' && i + 1 < input.length()) {
+            char nextChar = input[i + 1];
+            // 如果下一个字符是非法字符，则进行还原
+            if (illegalAlphabetSet.find(nextChar) != illegalAlphabetSet.end()) {
+                result += nextChar;
+                i += 2;  // 跳过这两个字符
+                continue;
+            }
+        }
+
+        // 否则直接添加当前字符
+        result += input[i];
+        i++;
+    }
+
+    return result;
+}

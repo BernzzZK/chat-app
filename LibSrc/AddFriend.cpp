@@ -21,36 +21,16 @@ std::string AddFriend::addFriend() {
         return "Error in db";
     }
 
-    // 工具 lambda：执行查询并返回行数
-    auto getCountFromQuery = [&](const std::string& query) -> int {
-        MYSQL_RES* res = (*mysql_db)->Query(query);
-        if (!res) return -1;
-        MYSQL_ROW row = mysql_fetch_row(res);
-        int count = row ? atoi(row[0]) : 0;
-        mysql_free_result(res);
-        return count;
-   };
-
-    // 工具 lambda：执行查询并返回单个字段值（字符串）
-    auto getSingleValue = [&](const std::string& query) -> std::string {
-        MYSQL_RES* res = (*mysql_db)->Query(query);
-        if (!res) return "";
-        MYSQL_ROW row = mysql_fetch_row(res);
-        std::string value = row ? row[0] : "";
-        mysql_free_result(res);
-        return value;
-    };
-
     // 1. 获取发送者和接收者的ID
     std::string getSenderIdQuery = "SELECT ID FROM User WHERE account = '" + _curr_acc + "'";
-    std::string from_id_str = getSingleValue(getSenderIdQuery);
+    std::string from_id_str = common::getSingleValue(getSenderIdQuery);
     if (from_id_str.empty()) {
         return "Sender account not found";
     }
     int from_id = atoi(from_id_str.c_str());
 
     std::string getReceiverIdQuery = "SELECT ID FROM User WHERE account = '" + _friendName + "'";
-    std::string to_id_str = getSingleValue(getReceiverIdQuery);
+    std::string to_id_str = common::getSingleValue(getReceiverIdQuery);
     if (to_id_str.empty()) {
         return "Receiver account not found";
     }
@@ -67,14 +47,14 @@ std::string AddFriend::addFriend() {
                                    " AND friend_id = " + std::to_string(to_id) + ") OR "
                                    "(user_id = " + std::to_string(to_id) +
                                    " AND friend_id = " + std::to_string(from_id) + ")";
-    int isAlreadyFriend = getCountFromQuery(checkFriendQuery);
+    int isAlreadyFriend = common::getCountFromQuery(checkFriendQuery);
     if (isAlreadyFriend < 0) return "Error in query";
     if (isAlreadyFriend > 0) return "already friend";
 
     // 4. 检查是否已经发送过请求
     std::string checkRequestQuery = "SELECT COUNT(*) FROM Friend_Req WHERE from_id = " +
                                     std::to_string(from_id) + " AND to_id = " + std::to_string(to_id);
-    int hasSentRequest = getCountFromQuery(checkRequestQuery);
+    int hasSentRequest = common::getCountFromQuery(checkRequestQuery);
     if (hasSentRequest < 0) return "Error in query";
     if (hasSentRequest > 0) return "already send request";
 
