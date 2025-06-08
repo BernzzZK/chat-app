@@ -1,9 +1,8 @@
 #pragma once
-#include <map>
 #include <string>
 #include <muduo/base/Timestamp.h>
-#include <Response.h>
 #include "nocopyable.h"
+#include "Response.h"
 
 enum reqType
 {

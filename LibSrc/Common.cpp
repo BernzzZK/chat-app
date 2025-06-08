@@ -121,7 +121,6 @@ std::string common::getSingleValue(const std::string &query) {
 std::string common::unescapeIllegalCharacters(const std::string& input) {
     std::string result;
     size_t i = 0;
-
     while (i < input.length()) {
         // 检查是否是转义字符 |
         if (input[i] == '|' && i + 1 < input.length()) {
@@ -133,11 +132,20 @@ std::string common::unescapeIllegalCharacters(const std::string& input) {
                 continue;
             }
         }
-
         // 否则直接添加当前字符
         result += input[i];
         i++;
     }
+    return result;
+}
 
+std::string common::escapeIllegalCharacters(const std::string& input) {
+    std::string result;
+    for (char c : input) {
+        if (common::illegalAlphabetSet.find(c) != common::illegalAlphabetSet.end()) {
+            result += '|';
+        }
+        result += c;
+    }
     return result;
 }

@@ -10,6 +10,9 @@
 #include "RedisConnPool.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
+
+#include "FriendApplication.h"
+#include "Message.h"
 #include "SendMsgReq.h"
 
 using namespace std::placeholders;
@@ -106,7 +109,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                 std::lock_guard lock(connMutex_);
                 auto it = loginUser_.find(to);
                 if (it!= loginUser_.end()) {
-                    it->second->send(sendMsgReq.toString());
+                    hasUnreadMsg(to, it->second);
                 }
             }
             conn->send(resp.toString());
@@ -121,7 +124,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                 std::lock_guard lock(connMutex_);
                 auto it = loginUser_.find(to);
                 if (it!= loginUser_.end()) {
-                    it->second->send(addFriendReq.toString());
+                    hasUnprocessAddFriend(to, it->second);
                 }
             }
             conn->send(resp.toString());
@@ -213,10 +216,12 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
     if (!mysqlGuard.isValid()) {
         LOG_ERROR << "mysql connection error";
     }
-    std::string sql = "SELECT m.ID, m.content, m.create_time, m.is_read "
-                      "FROM Offline_Message m "
-                      "INNER JOIN User u ON m.receiver_id = u.ID "
-                      "WHERE u.account = '"+ user +"' AND m.is_read = 0;";
+    std::string sql = "SELECT m.ID, m.content, m.create_time, m.is_read, "
+                       "sender.username AS sender_username, sender.account AS sender_account "
+                       "FROM Offline_Message m "
+                       "INNER JOIN User receiver ON m.receiver_id = receiver.ID "
+                       "INNER JOIN User sender ON m.sender_id = sender.ID "
+                       "WHERE receiver.account = '"+ user +"' AND m.is_read = 0;";
     auto result = (*mysqlGuard)->Query(sql);
     if (result != nullptr) {
         while (auto row = mysql_fetch_row(result)) {
@@ -224,7 +229,11 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
             std::string content = row[1];
             std::string createTime = row[2];
             std::string isRead = row[3];
-            LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead;
+            std::string senderUsername = row[4];
+            std::string senderAccount = row[5];
+            Message msg(msgId, content, createTime, std::stoi(isRead), senderUsername, senderAccount);
+            conn->send(msg.toString());
+            // LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead << " " << senderUsername << " " << senderAccount;
         }
     }
 }
@@ -232,17 +241,23 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
 void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnectionPtr &conn) {
     // 检查未处理的好友请求并发送
     MysqlConnGuard mysqlGuard;
-    std::string sql = "SELECT f.req_id, u.account AS from_account, f.create_time "
-                                      "FROM Friend_Req f "
-                                      "INNER JOIN User u ON f.from_id = u.ID "
-                                      "WHERE f.to_id = (SELECT ID FROM User WHERE account = '"+ user +"')";
+    std::string sql = "SELECT f.req_id, u.account AS from_account, "
+                       "u.username AS from_username, f.create_time "
+                       "FROM Friend_Req f "
+                       "INNER JOIN User u ON f.from_id = u.ID "
+                       "WHERE f.to_id = (SELECT ID FROM User WHERE account = '"+ user +"') "
+                       "AND f.status = 'pending';";
     auto result = (*mysqlGuard)->Query(sql);
     if (result!= nullptr) {
         while (auto row = mysql_fetch_row(result)) {
-            std::string reqId = row[0];
+            std::string id = row[0];
             std::string fromAccount = row[1];
-            std::string createTime = row[2];
-            LOG_INFO << reqId << " " << fromAccount << " " << createTime;
+            std::string fromUsername = row[2];
+            std::string createTime = row[3];
+            std::string status = "pending";
+            FriendApplication addFriendReq(id, createTime, status, fromUsername, fromAccount);
+            conn->send(addFriendReq.toString());
+            // LOG_INFO << reqId << " " << fromAccount << " "<< fromUsername <<" " << createTime << " " << status;
         }
     }
 }

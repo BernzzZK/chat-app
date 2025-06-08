@@ -3,7 +3,6 @@
 
 class LoginReq {
 private:
-
     std::string _acc;
     std::string _pwd;
     bool _keepLogin;

@@ -13,6 +13,7 @@ namespace common {
     int getCountFromQuery(const std::string& query);
     std::string getSingleValue(const std::string& query);
     std::string unescapeIllegalCharacters(const std::string& input);
+    std::string escapeIllegalCharacters(const std::string& input);
 
     const std::vector illegalAlphabet{' ', '@', '#', '$', '{', '}', '[', ']', ';', ':', '\'', '\"', '\\', '|', '?', '*', '%', ','};
     const std::unordered_map<int, char> encryptionAlphabet = {

@@ -37,7 +37,7 @@ void ChatClient::send(const std::string &message)
     MutexLockGuard lock(mutex_);
     if (connected_)
     {
-        conn_->send(message + "\r\n");
+        conn_->send(message);
     }
 }
 
@@ -78,7 +78,7 @@ void ChatClient::onMessage(const TcpConnectionPtr &conn,
             rec_resp_ = true;
             resp_cv_.notify_one();
         } else if (msg[0] == '#'){
-
+            LOG_INFO << "[server]: " << msg;
         }
     }
 }

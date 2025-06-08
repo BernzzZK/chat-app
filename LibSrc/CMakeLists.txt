@@ -33,6 +33,8 @@ set(LIB_SOURCES
         AddFriend.cpp
         RedisConnPool.cpp
         SendMsgReq.cpp
+        Message.cpp
+        FriendApplication.cpp
 )
 
 # 创建共享库

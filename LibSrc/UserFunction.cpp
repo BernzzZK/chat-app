@@ -136,15 +136,8 @@ std::string UserFunction::sendmsg(std::string &acc) {
     std::string msg;
     std::cout << "消息: ";
     std::getline(std::cin, msg);
-    std::string result;
-    for (char c : msg) {
-        if (common::illegalAlphabetSet.find(c) != common::illegalAlphabetSet.end()) {
-            result += '|';
-        }
-        result += c;
-    }
-    LOG_INFO << "result: " << result;
-    SendMsgReq sendMsgReq(result, curr_username, username);
+    msg = common::escapeIllegalCharacters(msg);
+    SendMsgReq sendMsgReq(msg, curr_username, username);
     return sendMsgReq.toString();
 }
 
