@@ -12,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "FriendApplication.h"
+#include "FriendList.h"
 #include "Message.h"
 #include "SendMsgReq.h"
 
@@ -47,6 +48,14 @@ Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::str
 
 void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time) {
     std::string msg(buff->retrieveAllAsString());
+    if (msg == "pong") {
+        std::unique_lock lock(connMutex_);
+        lock.lock();
+        reply_.clear();
+        reply_.insert(conn);
+        lock.unlock();
+        return;
+    }
     try{
         auto type = static_cast<reqType>(std::stoi(common::parsing(msg)));
         if (type == registered)
@@ -70,15 +79,16 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                             (*redisGuard)->execute("sadd loginUser " + user);
                         }
                     }
+                    conn->send(resp.toString());
                     // @TODO: 登录时触发，检查该用户是否有未读信息或好友请求
                     hasUnreadMsg(user, conn);
                     hasUnprocessAddFriend(user, conn);
+                    friendList(user, conn);
                 }
             } else {
                 Response repeatLogin(false, "account already login");
                 conn->send(repeatLogin.toString());
             }
-            conn->send(resp.toString());
         }
         else if (type == logout)
         {
@@ -260,4 +270,58 @@ void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnec
             // LOG_INFO << reqId << " " << fromAccount << " "<< fromUsername <<" " << createTime << " " << status;
         }
     }
+}
+
+void Server::friendList(const std::string &user, const net::TcpConnectionPtr &conn) {
+    MysqlConnGuard mysqlGuard;
+    std::string sqlQuery =
+        "SELECT u.account, u.username, f.created_time "
+        "FROM Friend f "
+        "INNER JOIN User u ON (f.friend_id = u.ID) "
+        "WHERE f.user_id = (SELECT ID FROM User WHERE account = '" + user + "') "
+        "UNION "
+        "SELECT u.account, u.username, f.created_time "
+        "FROM Friend f "
+        "INNER JOIN User u ON (f.user_id = u.ID) "
+        "WHERE f.friend_id = (SELECT ID FROM User WHERE account = '" + user + "');";
+    auto result = (*mysqlGuard)->Query(sqlQuery);
+    if (result!= nullptr) {
+        while (auto row = mysql_fetch_row(result)) {
+            std::string friendAccount = row[0];
+            std::string friendUsername = row[1];
+            std::string createTime = row[2];
+            bool isOnline;
+            if (loginUser_.find(friendAccount) != loginUser_.end()) {
+                isOnline = true;
+            } else {
+                isOnline = false;
+            }
+            FriendList friendList(friendAccount, friendUsername, createTime, isOnline);
+            conn->send(friendList.toString());
+            // LOG_INFO << "Friend " << friendUsername << ":" << friendAccount << " " << createTime;
+        }
+    }
+}
+
+void Server::isAlive() {
+    std::thread aliveThread([this]() {
+        while (true) {
+            sleep(25);
+            std::lock_guard<std::mutex> lock(connMutex_);
+            // 移除不在reply_的连接
+            for (auto it = connections_.begin(); it != connections_.end();) {
+                if (reply_.find(it->second) == reply_.end()) {
+                    it = connections_.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            for (auto it : connections_) {
+                if (it.second->connected()) {
+                    it.second->send("ping");
+                }
+            }
+        }
+    });
+    aliveThread.detach();
 }

@@ -13,6 +13,7 @@ class ChatClient
 public:
     ChatClient(muduo::net::EventLoop *loop,
                const muduo::net::InetAddress &serverAddr);
+    ~ChatClient();
 
     void connect();
     void disconnect();

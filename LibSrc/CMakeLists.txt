@@ -35,6 +35,7 @@ set(LIB_SOURCES
         SendMsgReq.cpp
         Message.cpp
         FriendApplication.cpp
+        FriendList.cpp
 )
 
 # 创建共享库

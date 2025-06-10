@@ -19,6 +19,13 @@ ChatClient::ChatClient(EventLoop *loop, const InetAddress &serverAddr)
         std::bind(&ChatClient::onMessage, this, _1, _2, _3));
 }
 
+ChatClient::~ChatClient()
+{
+    std::unique_lock lck(acc_mutex_);
+    send(UserFunction::logout(acc_));
+    disconnect();
+}
+
 void ChatClient::connect()
 {
     client_.connect();
@@ -70,8 +77,11 @@ void ChatClient::onMessage(const TcpConnectionPtr &conn,
     if (msg.empty()) {
          LOG_INFO << "Empty message";
     } else {
-        if (msg[0] != '@') {
+        if (msg[0] != '@' && msg[0] != '#') {
             LOG_INFO << "[server]: " << msg;
+            if (msg == "ping") {
+                this->send("pong");
+            }
         } else if (msg[0] == '@'){
             std::unique_lock<std::mutex> lck(resp_mutex_);
             resp_ = Response(msg);

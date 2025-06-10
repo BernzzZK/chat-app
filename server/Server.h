@@ -4,6 +4,7 @@
 #include <muduo/base/Logging.h>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <jsoncpp/json/json.h>
 
 using namespace muduo;
@@ -22,6 +23,7 @@ private:
     std::mutex connMutex_;
     std::unordered_map<std::string, muduo::net::TcpConnectionPtr> connections_;
     std::unordered_map<std::string, muduo::net::TcpConnectionPtr> loginUser_;
+    std::unordered_set<muduo::net::TcpConnectionPtr> reply_;
     std::string fileName_;
 
     void onConnection(const muduo::net::TcpConnectionPtr &conn);
@@ -29,6 +31,10 @@ private:
 
     void hasUnreadMsg(const std::string& user, const net::TcpConnectionPtr &conn);
     void hasUnprocessAddFriend(const std::string& user, const net::TcpConnectionPtr &conn);
+    void friendList(const std::string& user, const net::TcpConnectionPtr &conn);
+
+    // 检查连接是否存活且同步至redis
+    void isAlive();
 
     struct RedisPoolConfig
     {

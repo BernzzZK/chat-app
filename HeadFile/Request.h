@@ -11,7 +11,8 @@ enum reqType
     login,
     logout,
     sendMsg,
-    addFriend
+    addFriend,
+    friendList
 };
 
 struct reqHead {
