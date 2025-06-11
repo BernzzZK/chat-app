@@ -7,7 +7,8 @@
 
 #include "Request.h"
 
-class Message {
+class Message
+{
 public:
     Message(std::string id, std::string content, std::string time, bool isRead, std::string friendUserName, std::string friendAcc);
     Message(const std::string &info);
@@ -18,7 +19,7 @@ public:
     void setRead() { isRead_ = true; }
 
 private:
-    reqType reqType_;
+    type::reqType reqType_;
     std::string id_;
     std::string content_;
     std::string time_;
@@ -27,4 +28,4 @@ private:
     std::string friendAcc_;
 };
 
-#endif //MESSAGE_H
+#endif // MESSAGE_H

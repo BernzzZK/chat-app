@@ -53,14 +53,10 @@ std::string UserFunction::login(std::string *acc) {
     }
     password = common::encryption(password);
     LOG_INFO << "password: " << password;
-    std::cout << "是否保持登录状态? (y/n): ";
-    std::string keepLogin;
-    std::getline(std::cin, keepLogin);
-    bool keepAlive = (keepLogin == "y" || keepLogin == "Y");
     if (acc != nullptr) {
        *acc = username;
     }
-    LoginReq loginReq(username, password, keepAlive);
+    LoginReq loginReq(username, password);
     std::string req = loginReq.toString();
     return req;
 }

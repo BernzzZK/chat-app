@@ -1,6 +1,8 @@
 #pragma once
 #include "Request.h"
 
+class Response;
+
 class RegisterReq {
 private:
     Request _reqHead;

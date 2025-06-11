@@ -13,21 +13,25 @@ std::string reqHead::toString()
 void reqHead::toReqHead(std::string str)
 {
     std::vector<std::string> res = common::splitString(str);
-    if (!res.empty()) {
-        this->type = (reqType)std::stoi(res[0]);
+    if (!res.empty())
+    {
+        this->type = (type::reqType)std::stoi(res[0]);
         this->time = res[1];
     }
 }
 
-std::string Request::toString() {
+std::string Request::toString()
+{
     return _head.toString();
 }
 
-Request::Request(const reqType type, std::string time) {
+Request::Request(const type::reqType type, std::string time)
+{
     set(type, time);
 }
 
-void Request::set(const reqType type, std::string time) {
+void Request::set(const type::reqType type, std::string time)
+{
     _head.type = type;
     _head.time = time;
 }

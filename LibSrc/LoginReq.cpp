@@ -3,52 +3,54 @@
 #include "Common.h"
 #include <iostream>
 #include <muduo/base/Logging.h>
+#include "Response.h"
 
-LoginReq::LoginReq(const std::string & account, const std::string & password, bool keep_alive)
-    : _acc(account)
-    , _pwd(password)
-    , _keepLogin(keep_alive)
+LoginReq::LoginReq(const std::string &account, const std::string &password)
+    : _acc(account), _pwd(password)
 {
-    _reqHead.set(login, muduo::Timestamp::now().toFormattedString());
+    _reqHead.set(type::login, muduo::Timestamp::now().toFormattedString());
 }
 
-LoginReq::LoginReq(const std::string& req)
-    : _acc("")
-    , _pwd("")
-    , _keepLogin(false)
+LoginReq::LoginReq(const std::string &req)
+    : _acc(""), _pwd("")
 {
     auto res = common::splitString(req);
-    if (res.size() != 3) {
+    if (res.size() != 3)
+    {
         LOG_ERROR << "Invalid request format";
         return;
     }
-    _reqHead.set(static_cast<reqType>(std::stoi(res[0])), res[1]);
+    _reqHead.set(static_cast<type::reqType>(std::stoi(res[0])), res[1]);
     toLoginReq(res[2]);
 }
 
-Response LoginReq::handler() const {
-    Login login(_acc, _pwd, _keepLogin);
+Response LoginReq::handler() const
+{
+    Login login(_acc, _pwd);
     std::string res = login.validateLogin();
     Response resp;
-    if (res == "") {
-       resp.set(true, "login success");
-    } else {
-       resp.set(false, res);
+    if (res == "")
+    {
+        resp.set(type::login, true, "login success");
+    }
+    else
+    {
+        resp.set(type::login, false, res);
     }
     return resp;
 }
 
-std::string LoginReq::toString() {
+std::string LoginReq::toString()
+{
     std::string ret;
     ret.append("#" + _acc);
     ret.append("#" + _pwd);
-    ret.append("#" + std::to_string(_keepLogin));
     return _reqHead.toString() + "@" + ret; // to split req in two part -- head & info
 }
- 
-void LoginReq::toLoginReq(std::string info) {
+
+void LoginReq::toLoginReq(std::string info)
+{
     std::vector<std::string> res = common::splitString(info);
     this->_acc = res[0];
     this->_pwd = res[1];
-    this->_keepLogin = std::stoi(res[2]);
 }

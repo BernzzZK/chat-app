@@ -6,7 +6,7 @@
 #define SENDMSGREQ_H
 
 #include "Request.h"
-#include "Response.h"
+class Response;
 
 class SendMsgReq {
 public:

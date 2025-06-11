@@ -1,11 +1,12 @@
 #pragma once
 #include "Request.h"
 
+class Response;
+
 class LoginReq {
 private:
     std::string _acc;
     std::string _pwd;
-    bool _keepLogin;
     Request _reqHead;
 
 public:
@@ -18,7 +19,7 @@ public:
     LoginReq(const std::string &);
     LoginReq(std::string, int type);
 
-    LoginReq(const std::string & account, const std::string & password, bool keep_alive);
+    LoginReq(const std::string & account, const std::string & password);
 
     ~LoginReq() {};
 };

@@ -2,8 +2,8 @@
 #include "DBConnGuard.h"
 #include "Common.h"
 
-Login::Login(std::string acc, std::string pwd, bool keepLogin)
-    : _acc(acc), _pwd(pwd), _keepLogin(keepLogin)
+Login::Login(std::string acc, std::string pwd)
+    : _acc(acc), _pwd(pwd)
 {
 }
 
@@ -17,16 +17,16 @@ std::string Login::validateLogin()
     if (mysql_db.isValid()) {
         res = (*mysql_db)->Query(query);
     } else {
-        return "Error in query";
+        return "数据库查询错误，请稍后再试";
     }
     if (res) {
         MYSQL_ROW row = mysql_fetch_row(res);
         if (row == nullptr)
-            return "no such account";
+            return "账号不存在";
         else if (row[0] != _pwd)
-            return "error account or password";
+            return "账号或密码错误";
         else
             return "";
     }
-    return "error res";
+    return "数据库结果错误，请稍后再试";
 }

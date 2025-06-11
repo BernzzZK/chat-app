@@ -7,6 +7,8 @@
 
 #include "Request.h"
 
+class Response;
+
 class AddFriendReq {
 private:
     Request _reqHead;

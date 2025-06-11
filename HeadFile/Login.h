@@ -5,7 +5,7 @@
 
 class Login : chat::nocopyable {
 public:
-    Login(std::string acc, std::string pwd, bool keepLogin);
+    Login(std::string acc, std::string pwd);
     std::string validateLogin();
 
 protected :

@@ -7,7 +7,8 @@
 
 #include "Request.h"
 
-class FriendApplication {
+class FriendApplication
+{
 public:
     FriendApplication(std::string id, std::string time, std::string status, std::string senderUserName, std::string senderAcc);
     FriendApplication(const std::string &info);
@@ -17,7 +18,7 @@ public:
     std::string toString() const;
 
 private:
-    reqType reqType_;
+    type::reqType reqType_;
     std::string id_;
     std::string time_;
     std::string status_;
@@ -25,4 +26,4 @@ private:
     std::string senderAcc_;
 };
 
-#endif //FRIENDAPPLICATION_H
+#endif // FRIENDAPPLICATION_H

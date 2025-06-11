@@ -12,7 +12,7 @@ Logout::Logout(const std::string &acc)
 std::string Logout::logout() const {
     std::string res;
     if (_acc.empty()) {
-        res = "logout failed: invalid account";
+        res = "登录错误：非法账号";
     } else {
         res = "";
     }

@@ -16,7 +16,7 @@ Message::Message(std::string id, std::string content, std::string time, bool isR
     , isRead_(isRead)
     , friendUserName_(friendUserName)
     , friendAcc_(friendAcc)
-    , reqType_(sendMsg)
+    , reqType_(type::sendMsg)
 {
     content_ = common::escapeIllegalCharacters(content_);
 }
@@ -32,7 +32,7 @@ Message::Message(const std::string &info) {
     isRead_ = std::stoi(elements[3]);
     friendUserName_ = elements[4];
     friendAcc_ = elements[5];
-    reqType_ = sendMsg;
+    reqType_ = type::sendMsg;
 }
 
 std::string Message::toString() const {

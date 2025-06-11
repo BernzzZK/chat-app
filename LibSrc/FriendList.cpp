@@ -12,7 +12,7 @@ FriendList::FriendList(std::string friendAcc, std::string friendUserName, std::s
     , userName_(friendUserName)
     , createTime_(createTime)
     , isOnline_(isOnline)
-    ,reqType_(friendList)
+    ,reqType_(type::friendList)
 {
 }
 
@@ -25,7 +25,7 @@ FriendList::FriendList(const std::string &info) {
     userName_ = elements[1];
     createTime_ = elements[2];
     isOnline_ = std::stoi(elements[3]);
-    reqType_ = friendList;
+    reqType_ = type::friendList;
 }
 
 std::string FriendList::toString() const {

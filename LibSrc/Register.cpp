@@ -24,7 +24,7 @@ std::string Register::validateRegister() const {
     const std::string query = "SELECT account FROM User WHERE account = '" + _acc + "'";
     MYSQL_RES *res = (*mysql_db)->Query(query);
     if (!res) {
-        return "Error in query";
+        return "数据库查询错误，请稍后再试";
     }
 
     UniqueHashGenerator hashGenerator;
@@ -32,14 +32,14 @@ std::string Register::validateRegister() const {
 
     MYSQL_ROW row = mysql_fetch_row(res);
     if (row != nullptr) {
-        return "Account already exists";
+        return "账号已存在";
     }
 
     const std::string insert =
         "INSERT INTO User(ID, username, account, password, role, created_time) "
         "VALUES( " + id +", '默认名称', '" + _acc + "', '" + _pwd + "', 'user', CURRENT_TIMESTAMP)";
     if ((*mysql_db)->Query(insert)) {
-        return "Error in insert";
+        return "数据库错误，请稍后再试";
     }
     return ""; // 成功
 }

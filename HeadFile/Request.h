@@ -2,10 +2,9 @@
 #include <string>
 #include <muduo/base/Timestamp.h>
 #include "nocopyable.h"
-#include "Response.h"
 
-enum reqType
-{
+namespace type{
+   enum reqType {
     nullTyp,
     registered,
     login,
@@ -14,16 +13,17 @@ enum reqType
     addFriend,
     friendList
 };
+}
 
 struct reqHead {
 
-    reqType type;
+    type::reqType type;
     std::string time;
 
     std::string toString();
     void toReqHead(std::string);
     reqHead()
-    : type(nullTyp) 
+    : type(type::nullTyp) 
     , time(muduo::Timestamp::now().toString())
     {};
     reqHead(std::string str) {
@@ -39,11 +39,11 @@ public:
     : _head(str)
     { }
 
-    Request(const reqType type, std::string time);
+    Request(const type::reqType type, std::string time);
 
     std::string toString();
 
-    void set(const reqType type, const std::string time);
+    void set(const type::reqType type, const std::string time);
 
 private:
     reqHead _head;

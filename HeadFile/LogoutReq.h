@@ -6,6 +6,8 @@
 #define LOGOUTREQ_H
 #include "Request.h"
 
+class Response;
+
 class LogoutReq {
 private:
     Request _reqHead;

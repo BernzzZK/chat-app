@@ -15,7 +15,7 @@ FriendApplication::FriendApplication(std::string id, std::string time, std::stri
     , status_(status)
     , senderUserName_(senderUserName)
     , senderAcc_(senderAcc)
-    , reqType_(addFriend)
+    , reqType_(type::addFriend)
 {
 }
 
@@ -29,7 +29,7 @@ FriendApplication::FriendApplication(const std::string &info) {
     status_ = elements[2];
     senderUserName_ = elements[3];
     senderAcc_ = elements[4];
-    reqType_ = addFriend;
+    reqType_ = type::addFriend;
 }
 
 std::string FriendApplication::toString() const {
