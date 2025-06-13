@@ -56,6 +56,11 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
         lock.unlock();
         return;
     } else if (msg[0] == '#') {
+        auto type = static_cast<type::reqType>(std::stoi(*(common::splitString(msg).end() - 1)));
+        if (type == type::addFriend) {
+            FriendApplication friendApplication(msg);
+
+        }
         return;
     }
     try
@@ -300,13 +305,12 @@ void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnec
 {
     // 检查未处理的好友请求并发送
     MysqlConnGuard mysqlGuard;
-    std::string sql = "SELECT f.req_id, u.account AS from_account, "
-                      "u.username AS from_username, f.create_time "
+    std::string sql = "SELECT f.req_id, u.account AS from_account, u.username AS from_username, "
+                      "f.create_time, f.`status` "
                       "FROM Friend_Req f "
                       "INNER JOIN User u ON f.from_id = u.ID "
-                      "WHERE f.to_id = (SELECT ID FROM User WHERE account = '" +
-                      user + "') "
-                             "AND f.status = 'pending';";
+                      "WHERE f.to_id = (SELECT ID FROM User WHERE account = '"+ user +"') "
+                      "AND f.status IN ('pending', 'rejected');";
     auto result = (*mysqlGuard)->Query(sql);
     if (result != nullptr)
     {
@@ -316,7 +320,7 @@ void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnec
             std::string fromAccount = row[1];
             std::string fromUsername = row[2];
             std::string createTime = row[3];
-            std::string status = "pending";
+            std::string status = row[4];
             FriendApplication addFriendReq(id, createTime, status, fromUsername, fromAccount);
             conn->send(addFriendReq.toString());
             // LOG_INFO << reqId << " " << fromAccount << " "<< fromUsername <<" " << createTime << " " << status;

@@ -36,6 +36,8 @@ set(LIB_SOURCES
         Message.cpp
         FriendApplication.cpp
         FriendList.cpp
+        ChangeUserNameReq.cpp
+        ChangeUserName.cpp
 )
 
 # 创建共享库

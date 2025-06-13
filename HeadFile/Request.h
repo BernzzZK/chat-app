@@ -5,14 +5,15 @@
 
 namespace type{
    enum reqType {
-    nullTyp,
-    registered,
-    login,
-    logout,
-    sendMsg,
-    addFriend,
-    friendList
-};
+        nullTyp,
+        registered,
+        login,
+        logout,
+        sendMsg,
+        addFriend,
+        friendList,
+        changeUserName,
+    };
 }
 
 struct reqHead {

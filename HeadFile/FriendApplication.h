@@ -6,6 +6,7 @@
 #define FRIENDAPPLICATION_H
 
 #include "Request.h"
+#include "Response.h"
 
 class FriendApplication
 {
@@ -16,6 +17,8 @@ public:
     FriendApplication &operator=(const FriendApplication &message) = delete;
 
     std::string toString() const;
+
+    Response handle();
 
 private:
     type::reqType reqType_;
