@@ -3,6 +3,20 @@
 //
 
 #include "UniqueHashGenerator.h"
+#include "DBConnGuard.h"
+
+UniqueHashGenerator::UniqueHashGenerator() {
+    std::lock_guard<std::mutex> lock(mtx);
+    MysqlConnGuard mysql_db;
+    const std::string query = "select ID from User";
+    MYSQL_RES *res = (*mysql_db)->Query(query);
+    if (res) {
+        while (auto row = mysql_fetch_row(res)) {
+            generated.insert(row[0]);
+        }
+    }
+} 
+
 std::string UniqueHashGenerator::get_unique_8digit_hash(const std::string& input) {
     std::lock_guard<std::mutex> lock(mtx);
     std::string result;

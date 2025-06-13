@@ -9,34 +9,63 @@
 std::vector<std::string> common::splitString(const std::string &input)
 {
     std::vector<std::string> elements;
-    if (input.empty()) {
+
+    if (input.empty())
+    {
         return elements;
     }
+
     char delimiter = input[0];
     std::string token;
-    bool escaped = false;
-    for (size_t i = 1; i < input.size(); ++i) {
+
+    for (size_t i = 1; i < input.size(); ++i)
+    {
         char c = input[i];
-        if (escaped) {
-            token += c;
-            escaped = false;
-        } else if (c == '|') {
-            token += '|';
-            escaped = true;
-        } else if (c == delimiter) {
+        if (c == '|' && i + 1 < input.size())
+        {
+            // 转义下一个字符
+            token += input[++i]; // 跳过当前 '|', 取下一个字符
+        }
+        else if (c == delimiter)
+        {
+            // 分割字段
             elements.push_back(token);
             token.clear();
-        } else {
+        }
+        else
+        {
+            // 普通字符
             token += c;
         }
     }
+    // 添加最后一个字段
     elements.push_back(token);
-    if (!input.empty() && input.back() == delimiter) {
+    // 如果结尾是分隔符，则添加一个空字段（与原始逻辑一致）
+    if (!input.empty() && input.back() == delimiter)
+    {
         elements.push_back("");
     }
+
     return elements;
 }
 
+std::vector<std::string> common::simpleSplitKeepEmpty(const std::string &input)
+{
+    std::vector<std::string> result;
+    char delimiter = input[0];
+    size_t start = 0;
+    size_t end = input.find(delimiter);
+
+    while (end != std::string::npos)
+    {
+        result.push_back(input.substr(start, end - start));
+        start = end + 1;
+        end = input.find(delimiter, start);
+    }
+
+    result.push_back(input.substr(start));
+    return result;
+}
 
 bool common::containsInvalidChars(const std::string &input) {
     for (char c : input) {

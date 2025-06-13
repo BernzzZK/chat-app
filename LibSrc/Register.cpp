@@ -17,8 +17,6 @@ Register::Register(std::string acc, std::string pwd)
 
 std::string Register::validateRegister() const {
     MysqlConnGuard mysql_db;
-    common::removeNewline(_acc);
-    common::removeNewline(_pwd);
 
     // 2. 检查账号是否已存在
     const std::string query = "SELECT account FROM User WHERE account = '" + _acc + "'";
@@ -34,7 +32,9 @@ std::string Register::validateRegister() const {
     if (row != nullptr) {
         return "账号已存在";
     }
-
+    
+    LOG_INFO << "转换前pwd" << _pwd;
+    LOG_INFO << "转换后pwd" << _pwd.c_str();
     const std::string insert =
         "INSERT INTO User(ID, username, account, password, role, created_time) "
         "VALUES( " + id +", '默认名称', '" + _acc + "', '" + _pwd + "', 'user', CURRENT_TIMESTAMP)";

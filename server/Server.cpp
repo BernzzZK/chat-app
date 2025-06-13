@@ -55,6 +55,8 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
         reply_.insert(conn);
         lock.unlock();
         return;
+    } else if (msg[0] == '#') {
+        return;
     }
     try
     {

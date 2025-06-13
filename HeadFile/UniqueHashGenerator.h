@@ -20,6 +20,8 @@ private:
     unsigned int counter = 0;                  // 冲突时用作盐值
 
 public:
+    UniqueHashGenerator();
+
     // 输入字符串 -> 返回8位唯一的数字字符串
     std::string get_unique_8digit_hash(const std::string& input);
 
