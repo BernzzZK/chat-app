@@ -10,8 +10,8 @@
 #include "RedisConnPool.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
-
 #include "FriendApplication.h"
+#include "HeartBeat.h"
 #include "FriendList.h"
 #include "Message.h"
 #include "SendMsgReq.h"
@@ -47,19 +47,14 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
 {
     std::string msg(buff->retrieveAllAsString());
     LOG_INFO << "msg: " << msg;
-    if (msg == "pong")
+    if (msg == "ping")
     {
-        std::unique_lock lock(connMutex_);
-        lock.lock();
-        reply_.clear();
-        reply_.insert(conn);
-        lock.unlock();
+        conn->send("ping");
         return;
     } else if (msg[0] == '#') {
         auto type = static_cast<type::reqType>(std::stoi(*(common::splitString(msg).end() - 1)));
         if (type == type::addFriend) {
             FriendApplication friendApplication(msg);
-
         }
         return;
     }
@@ -158,6 +153,11 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                     hasUnprocessAddFriend(to, it->second);
                 }
             }
+            conn->send(resp.toString());
+        }
+        else if (type == type::heartbeat) {
+            HeartBeat hb(msg);
+            auto resp = hb.handler();
             conn->send(resp.toString());
         }
     }
@@ -369,8 +369,7 @@ void Server::friendList(const std::string &user, const net::TcpConnectionPtr &co
 
 void Server::isAlive()
 {
-    std::thread aliveThread([this]()
-                            {
+    std::thread aliveThread([this]() {
         while (true) {
             sleep(25);
             std::lock_guard<std::mutex> lock(connMutex_);

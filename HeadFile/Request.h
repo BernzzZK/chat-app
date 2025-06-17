@@ -13,6 +13,7 @@ namespace type{
         addFriend,
         friendList,
         changeUserName,
+        heartbeat
     };
 }
 

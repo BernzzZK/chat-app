@@ -38,6 +38,7 @@ set(LIB_SOURCES
         FriendList.cpp
         ChangeUserNameReq.cpp
         ChangeUserName.cpp
+        HeartBeat.cpp
 )
 
 # 创建共享库
