@@ -65,7 +65,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
         {
             RegisterReq registerReq(msg);
             const Response resp = registerReq.handler();
-            conn->send(resp.toString());
+            conn->send(resp.toString() + "\r\n");
         }
         else if (type == type::login)
         {
@@ -84,7 +84,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                                 (*redisGuard)->execute("sadd loginUser " + user);
                             }   
                         }
-                        conn->send(resp.toString());
+                        conn->send(resp.toString() + "\r\n");
                         // @TODO: 登录时触发，检查该用户是否有未读信息或好友请求
                         hasUnreadMsg(user, conn);
                         hasUnprocessAddFriend(user, conn);
@@ -92,10 +92,10 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                     }
                 } else {
                     Response repeatLogin(type::login, false, "account already login");
-                    conn->send(repeatLogin.toString());
+                    conn->send(repeatLogin.toString() + "\r\n");
                 }
             } else {
-                conn->send(resp.toString());
+                conn->send(resp.toString() + "\r\n");
             }
         }
         else if (type == type::logout)
@@ -117,7 +117,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
             else
             {
                 Response repeatLogout(type::logout, false, "account not login");
-                conn->send(repeatLogout.toString());
+                conn->send(repeatLogout.toString() + "\r\n");
             }
         }
         else if (type == type::sendMsg)
@@ -136,7 +136,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                     hasUnreadMsg(to, it->second);
                 }
             }
-            conn->send(resp.toString());
+            conn->send(resp.toString() + "\r\n");
         }
         else if (type == type::addFriend)
         {
@@ -153,12 +153,12 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
                     hasUnprocessAddFriend(to, it->second);
                 }
             }
-            conn->send(resp.toString());
+            conn->send(resp.toString() + "\r\n");
         }
         else if (type == type::heartbeat) {
             HeartBeat hb(msg);
             auto resp = hb.handler();
-            conn->send(resp.toString());
+            conn->send(resp.toString() + "\r\n");
         }
     }
     catch (const std::invalid_argument &e)
@@ -295,10 +295,15 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
             std::string senderUsername = row[4];
             std::string senderAccount = row[5];
             Message msg(msgId, content, createTime, std::stoi(isRead), senderUsername, senderAccount);
-            conn->send(msg.toString());
+            conn->send(msg.toString() + "\r\n");
             // LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead << " " << senderUsername << " " << senderAccount;
+            sql = "UPDATE Offline_Message"
+                  "SET is_read = 1 "
+                  "WHERE ID = " + msgId + ";";
+            (*mysqlGuard)->Query(sql);
         }
     }
+    
 }
 
 void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnectionPtr &conn)
@@ -322,7 +327,7 @@ void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnec
             std::string createTime = row[3];
             std::string status = row[4];
             FriendApplication addFriendReq(id, createTime, status, fromUsername, fromAccount);
-            conn->send(addFriendReq.toString());
+            conn->send(addFriendReq.toString() + "\r\n");
             // LOG_INFO << reqId << " " << fromAccount << " "<< fromUsername <<" " << createTime << " " << status;
         }
     }
@@ -352,16 +357,13 @@ void Server::friendList(const std::string &user, const net::TcpConnectionPtr &co
             std::string friendUsername = row[1];
             std::string createTime = row[2];
             bool isOnline;
-            if (loginUser_.find(friendAccount) != loginUser_.end())
-            {
+            if (loginUser_.find(friendAccount) != loginUser_.end()) {
                 isOnline = true;
-            }
-            else
-            {
+            } else {
                 isOnline = false;
             }
             FriendList friendList(friendAccount, friendUsername, createTime, isOnline);
-            conn->send(friendList.toString());
+            conn->send(friendList.toString() + "\r\n");
             // LOG_INFO << "Friend " << friendUsername << ":" << friendAccount << " " << createTime;
         }
     }
