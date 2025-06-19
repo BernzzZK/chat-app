@@ -1,24 +1,18 @@
 #include "Server.h"
-#include "AddFriendReq.h"
-#include "LoginReq.h"
-#include "RegisterReq.h"
 #include "Common.h"
 #include "DBConnGuard.h"
-#include "LogoutReq.h"
 #include "Response.h"
-#include "MysqlConnPool.h"
-#include "RedisConnPool.h"
 #include <fstream>
 #include <yaml-cpp/yaml.h>
 #include "FriendApplication.h"
 #include "HeartBeat.h"
 #include "FriendList.h"
 #include "Message.h"
-#include "SendMsgReq.h"
+#include "Req.h"
 
 using namespace std::placeholders;
 
-Server::Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName = "")
+Server::Server(net::EventLoop *loop, const net::InetAddress &listenaddr, const std::string &fileName = "")
     : server_(loop, listenaddr, "chat server"), fileName_(fileName)
 {
     server_.setConnectionCallback(bind(&Server::onConnection, this, _1));
@@ -167,7 +161,7 @@ void Server::onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Tim
     }
 }
 
-void Server::onConnection(const muduo::net::TcpConnectionPtr &conn)
+void Server::onConnection(const net::TcpConnectionPtr &conn)
 {
     if (conn->connected())
     {
@@ -275,6 +269,7 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
     if (!mysqlGuard.isValid())
     {
         LOG_ERROR << "mysql connection error";
+        return;
     }
     std::string sql = "SELECT m.ID, m.content, m.create_time, m.is_read, "
                       "sender.username AS sender_username, sender.account AS sender_account "
@@ -369,25 +364,25 @@ void Server::friendList(const std::string &user, const net::TcpConnectionPtr &co
     }
 }
 
-void Server::isAlive()
-{
-    std::thread aliveThread([this]() {
-        while (true) {
-            sleep(25);
-            std::lock_guard<std::mutex> lock(connMutex_);
-            // 移除不在reply_的连接
-            for (auto it = connections_.begin(); it != connections_.end();) {
-                if (reply_.find(it->second) == reply_.end()) {
-                    it = connections_.erase(it);
-                } else {
-                    ++it;
-                }
-            }
-            for (auto it : connections_) {
-                if (it.second->connected()) {
-                    it.second->send("ping");
-                }
-            }
-        } });
-    aliveThread.detach();
-}
+// void Server::isAlive()
+// {
+//     std::thread aliveThread([this]() {
+//         while (true) {
+//             sleep(25);
+//             std::lock_guard<std::mutex> lock(connMutex_);
+//             // 移除不在reply_的连接
+//             for (auto it = connections_.begin(); it != connections_.end();) {
+//                 if (reply_.find(it->second) == reply_.end()) {
+//                     it = connections_.erase(it);
+//                 } else {
+//                     ++it;
+//                 }
+//             }
+//             for (auto it : connections_) {
+//                 if (it.second->connected()) {
+//                     it.second->send("ping");
+//                 }
+//             }
+//         } });
+//     aliveThread.detach();
+// }

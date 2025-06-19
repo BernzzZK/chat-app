@@ -15,30 +15,31 @@ project(ChatLib LANGUAGES CXX)
 
 # 明确列出源文件（比GLOB更可靠）
 set(LIB_SOURCES
-        Common.cpp
-        Login.cpp
-        LoginReq.cpp
-        MysqlConn.cpp
-        MysqlConnPool.cpp
-        RedisConn.cpp
-        RegisterReq.cpp
-        Request.cpp
-        Response.cpp
-        UserFunction.cpp
-        Register.cpp
-        LogoutReq.cpp
-        Logout.cpp
-        UniqueHashGenerator.cpp
-        AddFriendReq.cpp
-        AddFriend.cpp
-        RedisConnPool.cpp
-        SendMsgReq.cpp
-        Message.cpp
-        FriendApplication.cpp
-        FriendList.cpp
-        ChangeUserNameReq.cpp
-        ChangeUserName.cpp
-        HeartBeat.cpp
+        base/Common.cpp
+        base/Login.cpp
+        base/LoginReq.cpp
+        db/MysqlConn.cpp
+        db/MysqlConnPool.cpp
+        db/RedisConn.cpp
+        base/RegisterReq.cpp
+        base/Request.cpp
+        base/Response.cpp
+        client/UserFunction.cpp
+        base/Register.cpp
+        base/LogoutReq.cpp
+        base/Logout.cpp
+        server/UniqueHashGenerator.cpp
+        base/AddFriendReq.cpp
+        base/AddFriend.cpp
+        db/RedisConnPool.cpp
+        base/SendMsgReq.cpp
+        base/Message.cpp
+        base/FriendApplication.cpp
+        base/FriendList.cpp
+        base/ChangeUserNameReq.cpp
+        base/ChangeUserName.cpp
+        base/HeartBeat.cpp
+        ../HeadFile/Req.h
 )
 
 # 创建共享库
