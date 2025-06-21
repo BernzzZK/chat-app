@@ -294,7 +294,7 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
             std::string isRead = row[3];
             std::string senderUsername = row[4];
             std::string senderAccount = row[5];
-            Message msg(msgId, content, createTime, std::stoi(isRead), senderUsername, senderAccount);
+            Message msg(msgId, content, createTime, senderUsername, senderAccount);
             conn->send(msg.toString() + "\r\n");
             // LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead << " " << senderUsername << " " << senderAccount;
             sql = "UPDATE Offline_Message"

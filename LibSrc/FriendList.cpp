@@ -30,6 +30,6 @@ FriendList::FriendList(const std::string &info) {
 
 std::string FriendList::toString() const {
     std::stringstream ss;
-    ss << "#" <<userAcc_ << "#" << userName_ << "#" << createTime_ << "#" << isOnline_ << "#" << reqType_;
+    ss << "#" << userAcc_ << "#" << userName_ << "#" << createTime_ << "#" << isOnline_ << "#" << reqType_;
     return ss.str();
 }

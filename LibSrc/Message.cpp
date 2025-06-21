@@ -9,11 +9,10 @@
 
 #include "Common.h"
 
-Message::Message(std::string id, std::string content, std::string time, bool isRead, std::string friendUserName, std::string friendAcc)
+Message::Message(std::string id, std::string content, std::string time, std::string friendUserName, std::string friendAcc)
     : id_(id)
     , content_(content)
     , time_(time)
-    , isRead_(isRead)
     , friendUserName_(friendUserName)
     , friendAcc_(friendAcc)
     , reqType_(type::sendMsg)
@@ -23,21 +22,20 @@ Message::Message(std::string id, std::string content, std::string time, bool isR
 
 Message::Message(const std::string &info) {
     auto elements = common::splitString(info);
-    if (elements.size() != 6) {
+    if (elements.size() != 5) {
         LOG_ERROR << "Invalid format";
     }
     id_ = elements[0];
     content_ = elements[1];
     time_ = elements[2];
-    isRead_ = std::stoi(elements[3]);
-    friendUserName_ = elements[4];
-    friendAcc_ = elements[5];
+    friendUserName_ = elements[3];
+    friendAcc_ = elements[4];
     reqType_ = type::sendMsg;
 }
 
 std::string Message::toString() const {
     std::stringstream ss;
-    ss << "#" <<id_ << "#" << content_ << "#" << time_ << "#" << isRead_ << "#" << friendUserName_ << "#" << friendAcc_ << "#" << reqType_;
+    ss << "#" <<id_ << "#" << content_ << "#" << time_ << "#" << friendUserName_ << "#" << friendAcc_ << "#" << reqType_;
     return ss.str();
 }
 
