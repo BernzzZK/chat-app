@@ -291,7 +291,6 @@ void Server::hasUnreadMsg(const std::string &user, const net::TcpConnectionPtr &
             std::string senderAccount = row[5];
             Message msg(msgId, content, createTime, senderUsername, senderAccount);
             conn->send(msg.toString() + "\r\n");
-            // LOG_INFO << msgId << " " << content << " " << createTime << " " << isRead << " " << senderUsername << " " << senderAccount;
             sql = "UPDATE Offline_Message"
                   "SET is_read = 1 "
                   "WHERE ID = " + msgId + ";";
@@ -323,7 +322,6 @@ void Server::hasUnprocessAddFriend(const std::string &user, const net::TcpConnec
             std::string status = row[4];
             FriendApplication addFriendReq(id, createTime, status, fromUsername, fromAccount);
             conn->send(addFriendReq.toString() + "\r\n");
-            // LOG_INFO << reqId << " " << fromAccount << " "<< fromUsername <<" " << createTime << " " << status;
         }
     }
 }
@@ -359,7 +357,6 @@ void Server::friendList(const std::string &user, const net::TcpConnectionPtr &co
             }
             FriendList friendList(friendAccount, friendUsername, createTime, isOnline);
             conn->send(friendList.toString() + "\r\n");
-            // LOG_INFO << "Friend " << friendUsername << ":" << friendAccount << " " << createTime;
         }
     }
 }
