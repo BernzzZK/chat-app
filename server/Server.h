@@ -5,13 +5,12 @@
 #include <mutex>
 #include <unordered_map>
 #include <unordered_set>
-#include <jsoncpp/json/json.h>
 
 using namespace muduo;
 class Request;
 class Server {
 public:
-    Server(net::EventLoop *loop, const net::InetAddress listenaddr, std::string fileName);
+    Server(net::EventLoop *loop, const net::InetAddress &listenaddr, const std::string &fileName);
     ~Server();
 
     void start();
@@ -21,20 +20,20 @@ private:
 
     net::TcpServer server_;
     std::mutex connMutex_;
-    std::unordered_map<std::string, muduo::net::TcpConnectionPtr> connections_;
-    std::unordered_map<std::string, muduo::net::TcpConnectionPtr> loginUser_;
-    std::unordered_set<muduo::net::TcpConnectionPtr> reply_;
+    std::unordered_map<std::string, net::TcpConnectionPtr> connections_;
+    std::unordered_map<std::string, net::TcpConnectionPtr> loginUser_;
+    std::unordered_set<net::TcpConnectionPtr> reply_;
     std::string fileName_;
 
-    void onConnection(const muduo::net::TcpConnectionPtr &conn);
-    void onMessage(const muduo::net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time);
+    void onConnection(const net::TcpConnectionPtr &conn);
+    void onMessage(const net::TcpConnectionPtr &conn, net::Buffer *buff, Timestamp time);
 
     void hasUnreadMsg(const std::string& user, const net::TcpConnectionPtr &conn);
     void hasUnprocessAddFriend(const std::string& user, const net::TcpConnectionPtr &conn);
     void friendList(const std::string& user, const net::TcpConnectionPtr &conn);
 
     // 检查连接是否存活且同步至redis
-    void isAlive();
+    // void isAlive();
 
     struct RedisPoolConfig
     {
